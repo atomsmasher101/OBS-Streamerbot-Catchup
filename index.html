@@ -658,9 +658,9 @@ const VISUAL_THEMES = {
     ocean: {
         accent: '#54b4ff',
         sub: '#4f6cf0',
-        subBomb: '#9bf6ff',
-        cheer: '#00d8ff',
-        bg: '#091522',
+        subBomb: '#FAC16E',
+        cheer: '#69FFD3',
+        bg: '#48C6E0',
         glass: 'rgba(75, 130, 180, 0.16)',
         glassBorder: 'rgba(125, 200, 255, 0.25)'
     },
@@ -953,12 +953,8 @@ async function showSetupModal() {
     const systemActions = [
         'SaveCelebrationConfig',
         'CelebrationManager',
-        'CelebrationAlert',  // Old action, kept for compatibility
         'StoreEvent',
-        'SkipCelebration',   // Old action, kept for compatibility
-        'SortCelebrations',  // Old action, kept for compatibility
-        'HandleSingleGift',
-        'TestConfigEvent'
+        'HandleSingleGift'
     ];
 
     const celebrationActions = State.availableActions.filter(action => 
