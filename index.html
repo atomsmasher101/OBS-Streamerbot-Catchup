@@ -13,6 +13,7 @@
             --bg: #0d0d12;
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --card-padding: 10px;
         }
 
         body {
@@ -85,7 +86,7 @@
             background: var(--glass);
             border: 1px solid var(--glass-border);
             border-left: 4px solid var(--purple);
-            padding: 10px;
+            padding: var(--card-padding);
             border-radius: 4px;
             cursor: pointer;
             position: relative;
@@ -322,6 +323,70 @@
             justify-content: center;
         }
 
+        .setup-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .setup-tab {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(147, 112, 219, 0.4);
+            color: #cfcfcf;
+            font-size: 0.62rem;
+            padding: 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .setup-tab.active {
+            color: white;
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.35), rgba(255, 105, 180, 0.35));
+            border-color: var(--pink);
+            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25);
+        }
+
+        .setup-panel {
+            display: none;
+        }
+
+        .setup-panel.active {
+            display: block;
+        }
+
+        .setup-panel-footer {
+            margin-top: 20px;
+        }
+
+        .visual-setting {
+            margin-bottom: 12px;
+        }
+
+        .visual-setting label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--cyan);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .visual-setting select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(147, 112, 219, 0.4);
+            color: white;
+            color-scheme: dark;
+            font-size: 0.7rem;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         .modal button {
             background: linear-gradient(135deg, rgba(147, 112, 219, 0.2), rgba(255, 105, 180, 0.2));
             border: 1px solid rgba(147, 112, 219, 0.4);
@@ -470,13 +535,54 @@
     <div id="setup-modal" class="modal-overlay">
         <div class="modal" style="max-width: 320px;">
             <h2>⚙️ Celebration Setup</h2>
-            <p style="font-size: 0.7rem; margin-bottom: 20px;">Configure actions for all event types:</p>
-            
-            <div id="setup-fields"></div>
-            
-            <div class="modal-buttons" style="margin-top: 20px;">
-                <button id="setup-cancel">Cancel</button>
-                <button id="setup-save" class="primary">Save All</button>
+            <p style="font-size: 0.7rem; margin-bottom: 14px;">Configure actions and visuals for the dock:</p>
+
+            <div class="setup-tabs">
+                <button id="setup-tab-actions" class="setup-tab active">Action Setup</button>
+                <button id="setup-tab-visuals" class="setup-tab">Visual Settings</button>
+            </div>
+
+            <div id="setup-panel-actions" class="setup-panel active">
+                <div id="setup-fields"></div>
+
+                <div class="modal-buttons setup-panel-footer">
+                    <button id="setup-cancel-actions">Cancel</button>
+                    <button id="setup-save-actions" class="primary">Save Actions</button>
+                </div>
+            </div>
+
+            <div id="setup-panel-visuals" class="setup-panel">
+                <div class="visual-setting">
+                    <label for="visual-theme">Color Scheme</label>
+                    <select id="visual-theme">
+                        <option value="neon">Neon (Default)</option>
+                        <option value="ocean">Ocean</option>
+                        <option value="sunset">Sunset</option>
+                    </select>
+                </div>
+
+                <div class="visual-setting">
+                    <label for="visual-text-size">Text Size</label>
+                    <select id="visual-text-size">
+                        <option value="small">Small</option>
+                        <option value="normal">Normal</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+
+                <div class="visual-setting">
+                    <label for="visual-density">Card Density</label>
+                    <select id="visual-density">
+                        <option value="compact">Compact</option>
+                        <option value="comfortable">Comfortable</option>
+                        <option value="spacious">Spacious</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons setup-panel-footer">
+                    <button id="setup-cancel-visuals">Cancel</button>
+                    <button id="setup-save-visuals" class="primary">Save Visuals</button>
+                </div>
             </div>
         </div>
     </div>
@@ -506,8 +612,17 @@ const DOM = {
     setup: {
         overlay: document.getElementById('setup-modal'),
         fields: document.getElementById('setup-fields'),
-        cancel: document.getElementById('setup-cancel'),
-        save: document.getElementById('setup-save')
+        tabActions: document.getElementById('setup-tab-actions'),
+        tabVisuals: document.getElementById('setup-tab-visuals'),
+        panelActions: document.getElementById('setup-panel-actions'),
+        panelVisuals: document.getElementById('setup-panel-visuals'),
+        cancelActions: document.getElementById('setup-cancel-actions'),
+        saveActions: document.getElementById('setup-save-actions'),
+        cancelVisuals: document.getElementById('setup-cancel-visuals'),
+        saveVisuals: document.getElementById('setup-save-visuals'),
+        theme: document.getElementById('visual-theme'),
+        textSize: document.getElementById('visual-text-size'),
+        density: document.getElementById('visual-density')
     }
 };
 
@@ -521,7 +636,55 @@ const State = {
     dragPreview: null,
     availableActions: [],
     currentConfigType: null,
-    currentConfigEvent: null
+    currentConfigEvent: null,
+    setupTab: 'actions',
+    visualSettings: {
+        theme: 'neon',
+        textSize: 'normal',
+        density: 'comfortable'
+    }
+};
+
+const VISUAL_THEMES = {
+    neon: {
+        pink: '#ff69b4',
+        purple: '#9370db',
+        yellow: '#ffff00',
+        cyan: '#00ffff',
+        bg: '#0d0d12',
+        glass: 'rgba(255, 255, 255, 0.05)',
+        glassBorder: 'rgba(255, 255, 255, 0.1)'
+    },
+    ocean: {
+        pink: '#7fd5ff',
+        purple: '#2f4ed8',
+        yellow: '#e6fbff',
+        cyan: '#00f0ff',
+        bg: '#050d18',
+        glass: 'rgba(25, 72, 120, 0.30)',
+        glassBorder: 'rgba(153, 227, 255, 0.48)'
+    },
+    sunset: {
+        pink: '#ffb07a',
+        purple: '#d81b60',
+        yellow: '#fff3b0',
+        cyan: '#ffe0d4',
+        bg: '#12070b',
+        glass: 'rgba(120, 32, 44, 0.30)',
+        glassBorder: 'rgba(255, 192, 141, 0.46)'
+    }
+};
+
+const TEXT_SIZE_MAP = {
+    small: '14px',
+    normal: '16px',
+    large: '18px'
+};
+
+const CARD_DENSITY_MAP = {
+    compact: '7px',
+    comfortable: '10px',
+    spacious: '13px'
 };
 
 function createDragPreview(card) {
@@ -570,12 +733,27 @@ function initApp() {
     buildControlBar();
     initializeStreamerbotClient();
     setupModal();
+    loadVisualSettings();
+    applyVisualSettings();
 }
 
 /* =========================================================
    MODAL SETUP
 ========================================================= */
 function setupModal() {
+    const switchSetupTab = (tabName) => {
+        State.setupTab = tabName;
+        const isActions = tabName === 'actions';
+
+        DOM.setup.tabActions.classList.toggle('active', isActions);
+        DOM.setup.tabVisuals.classList.toggle('active', !isActions);
+        DOM.setup.panelActions.classList.toggle('active', isActions);
+        DOM.setup.panelVisuals.classList.toggle('active', !isActions);
+    };
+
+    DOM.setup.tabActions.onclick = () => switchSetupTab('actions');
+    DOM.setup.tabVisuals.onclick = () => switchSetupTab('visuals');
+
     DOM.modal.cancel.onclick = () => {
         DOM.modal.overlay.classList.remove('visible');
         State.currentConfigType = null;
@@ -635,11 +813,11 @@ function setupModal() {
     };
 
     // Setup modal handlers
-    DOM.setup.cancel.onclick = () => {
+    DOM.setup.cancelActions.onclick = () => {
         DOM.setup.overlay.classList.remove('visible');
     };
 
-    DOM.setup.save.onclick = async () => {
+    DOM.setup.saveActions.onclick = async () => {
         const configs = [
             { type: 'NewSub', select: 'setup-newsub' },
             { type: 'Resub', select: 'setup-resub' },
@@ -672,6 +850,61 @@ function setupModal() {
             log(`Error during setup: ${err.message}`);
         }
     };
+
+    DOM.setup.cancelVisuals.onclick = () => {
+        DOM.setup.overlay.classList.remove('visible');
+    };
+
+    DOM.setup.saveVisuals.onclick = () => {
+        State.visualSettings = {
+            theme: DOM.setup.theme.value,
+            textSize: DOM.setup.textSize.value,
+            density: DOM.setup.density.value
+        };
+
+        applyVisualSettings();
+        persistVisualSettings();
+        DOM.setup.overlay.classList.remove('visible');
+        log('Visual settings saved');
+    };
+
+}
+
+function loadVisualSettings() {
+    try {
+        const raw = localStorage.getItem('catchupVisualSettings');
+        if (!raw) return;
+
+        const saved = JSON.parse(raw);
+        State.visualSettings = {
+            theme: saved.theme || State.visualSettings.theme,
+            textSize: saved.textSize || State.visualSettings.textSize,
+            density: saved.density || State.visualSettings.density
+        };
+    } catch (err) {
+        log(`Failed to load visual settings: ${err.message}`);
+    }
+}
+
+function persistVisualSettings() {
+    localStorage.setItem('catchupVisualSettings', JSON.stringify(State.visualSettings));
+}
+
+function applyVisualSettings() {
+    const root = document.documentElement;
+    const theme = VISUAL_THEMES[State.visualSettings.theme] || VISUAL_THEMES.neon;
+    const textSize = TEXT_SIZE_MAP[State.visualSettings.textSize] || TEXT_SIZE_MAP.normal;
+    const cardPadding = CARD_DENSITY_MAP[State.visualSettings.density] || CARD_DENSITY_MAP.comfortable;
+
+    root.style.setProperty('--pink', theme.pink);
+    root.style.setProperty('--purple', theme.purple);
+    root.style.setProperty('--yellow', theme.yellow);
+    root.style.setProperty('--cyan', theme.cyan);
+    root.style.setProperty('--bg', theme.bg);
+    root.style.setProperty('--glass', theme.glass);
+    root.style.setProperty('--glass-border', theme.glassBorder);
+    root.style.setProperty('--card-padding', cardPadding);
+    root.style.fontSize = textSize;
 }
 
 async function showSetupModal() {
@@ -719,6 +952,9 @@ async function showSetupModal() {
 
     // Build fields
     DOM.setup.fields.innerHTML = '';
+    DOM.setup.theme.value = State.visualSettings.theme;
+    DOM.setup.textSize.value = State.visualSettings.textSize;
+    DOM.setup.density.value = State.visualSettings.density;
     
     for (const eventType of eventTypes) {
         const field = document.createElement('div');
@@ -771,6 +1007,7 @@ async function showSetupModal() {
         DOM.setup.fields.appendChild(field);
     }
 
+    DOM.setup.tabActions.click();
     DOM.setup.overlay.classList.add('visible');
 }
 
