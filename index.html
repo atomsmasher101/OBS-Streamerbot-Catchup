@@ -733,7 +733,6 @@ function initApp() {
     buildControlBar();
     initializeStreamerbotClient();
     setupModal();
-    loadVisualSettings();
     applyVisualSettings();
 }
 
@@ -855,39 +854,76 @@ function setupModal() {
         DOM.setup.overlay.classList.remove('visible');
     };
 
-    DOM.setup.saveVisuals.onclick = () => {
+    DOM.setup.saveVisuals.onclick = async () => {
         State.visualSettings = {
             theme: DOM.setup.theme.value,
             textSize: DOM.setup.textSize.value,
             density: DOM.setup.density.value
         };
 
-        applyVisualSettings();
-        persistVisualSettings();
-        DOM.setup.overlay.classList.remove('visible');
-        log('Visual settings saved');
+        try {
+            await persistVisualSettings();
+            applyVisualSettings();
+            DOM.setup.overlay.classList.remove('visible');
+            log('Visual settings saved');
+        } catch (err) {
+            log(`Failed to save visual settings: ${err.message}`);
+        }
     };
 
 }
 
-function loadVisualSettings() {
-    try {
-        const raw = localStorage.getItem('catchupVisualSettings');
-        if (!raw) return;
-
-        const saved = JSON.parse(raw);
-        State.visualSettings = {
-            theme: saved.theme || State.visualSettings.theme,
-            textSize: saved.textSize || State.visualSettings.textSize,
-            density: saved.density || State.visualSettings.density
-        };
-    } catch (err) {
-        log(`Failed to load visual settings: ${err.message}`);
-    }
+function normalizeVisualSettings(settings) {
+    return {
+        theme: VISUAL_THEMES[settings.theme] ? settings.theme : 'neon',
+        textSize: TEXT_SIZE_MAP[settings.textSize] ? settings.textSize : 'normal',
+        density: CARD_DENSITY_MAP[settings.density] ? settings.density : 'comfortable'
+    };
 }
 
-function persistVisualSettings() {
-    localStorage.setItem('catchupVisualSettings', JSON.stringify(State.visualSettings));
+async function loadVisualSettings() {
+    if (!State.client) return;
+
+    const fallback = normalizeVisualSettings(State.visualSettings);
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'ensure',
+            theme: fallback.theme,
+            textSize: fallback.textSize,
+            density: fallback.density
+        }
+    );
+
+    const [themeResponse, textSizeResponse, densityResponse] = await Promise.all([
+        State.client.getGlobal('catchupVisualTheme', true),
+        State.client.getGlobal('catchupVisualTextSize', true),
+        State.client.getGlobal('catchupVisualDensity', true)
+    ]);
+
+    State.visualSettings = normalizeVisualSettings({
+        theme: themeResponse?.variable?.value || fallback.theme,
+        textSize: textSizeResponse?.variable?.value || fallback.textSize,
+        density: densityResponse?.variable?.value || fallback.density
+    });
+}
+
+async function persistVisualSettings() {
+    const sanitized = normalizeVisualSettings(State.visualSettings);
+    State.visualSettings = sanitized;
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'save',
+            theme: sanitized.theme,
+            textSize: sanitized.textSize,
+            density: sanitized.density
+        }
+    );
 }
 
 function applyVisualSettings() {
@@ -1194,8 +1230,10 @@ function handleConfigNeeded(event) {
     }
 }
 
-function handleConnection() {
+async function handleConnection() {
     DOM.stats.innerText = "Connected";
+    await loadVisualSettings();
+    applyVisualSettings();
     fetchEvents();
     loadActions();
 }
