@@ -111,7 +111,7 @@
 
         #drop-zone-bottom.drag-over {
             border-color: var(--cheer);
-            background: var(--drop-zone-active-bg);
+            background: rgba(0, 255, 255, 0.05);
             color: var(--cheer);
         }
 
@@ -150,12 +150,12 @@
         /* Color Coding */
         .card.SubBomb { 
             border-left-color: var(--sub-bomb); 
-            box-shadow: inset 5px 0 10px -5px var(--sub-bomb-glow);
+            box-shadow: inset 5px 0 10px -5px rgba(255, 255, 0, 0.3);
         }
 
         .card.Cheer { 
             border-left-color: var(--cheer); 
-            box-shadow: inset 5px 0 10px -5px var(--cheer-glow);
+            box-shadow: inset 5px 0 10px -5px rgba(0, 255, 255, 0.3);
         }
 
         .card.Sub { 
@@ -204,7 +204,7 @@
         /* New state for when the card is clicked */
         .card.initiating {
             border-color: var(--cheer) !important;
-            background: var(--cheer-soft-bg);
+            background: rgba(0, 255, 255, 0.1);
             pointer-events: none;
         }
 
@@ -291,7 +291,7 @@
         }
 
         .modal {
-            background: linear-gradient(135deg, var(--modal-bg-start), var(--modal-bg-end));
+            background: linear-gradient(135deg, rgba(13, 13, 18, 0.95), rgba(20, 20, 30, 0.95));
             border: 2px solid var(--sub);
             border-radius: 8px;
             padding: 20px;
@@ -342,7 +342,7 @@
         .modal select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 10px var(--focus-glow);
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
         }
 
         .modal select option {
@@ -377,10 +377,10 @@
         }
 
         .setup-tab.active {
-            color: var(--text-primary);
-            background: linear-gradient(135deg, var(--tab-active-start), var(--tab-active-end));
+            color: white;
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.35), rgba(255, 105, 180, 0.35));
             border-color: var(--accent);
-            box-shadow: 0 0 12px var(--tab-active-glow);
+            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25);
         }
 
         .setup-panel {
@@ -436,8 +436,8 @@
 
         .modal button:hover {
             border-color: var(--sub);
-            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
-            box-shadow: 0 0 15px var(--button-glow);
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
+            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
         }
 
         .modal button.primary {
@@ -505,8 +505,8 @@
         .control-bar select:hover,
         .control-bar button:hover {
             border-color: var(--sub);
-            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
-            box-shadow: 0 0 15px var(--button-glow);
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.25), rgba(255, 105, 180, 0.25));
+            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
             transform: translateY(-1px);
         }
 
@@ -514,7 +514,7 @@
         .control-bar button:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 20px var(--focus-glow);
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
         }
 
         .control-bar button:active {
@@ -701,9 +701,9 @@ const VISUAL_THEMES = {
     ocean: {
         accent: '#54b4ff',
         sub: '#4f6cf0',
-        subBomb: '#9bf6ff',
-        cheer: '#00d8ff',
-        bg: '#091522',
+        subBomb: '#FAC16E',
+        cheer: '#69FFD3',
+        bg: '#005671',
         glass: 'rgba(75, 130, 180, 0.16)',
         glassBorder: 'rgba(125, 200, 255, 0.25)',
         textPrimary: '#eef8ff',
@@ -1081,12 +1081,8 @@ async function showSetupModal() {
     const systemActions = [
         'SaveCelebrationConfig',
         'CelebrationManager',
-        'CelebrationAlert',  // Old action, kept for compatibility
         'StoreEvent',
-        'SkipCelebration',   // Old action, kept for compatibility
-        'SortCelebrations',  // Old action, kept for compatibility
-        'HandleSingleGift',
-        'TestConfigEvent'
+        'HandleSingleGift'
     ];
 
     const celebrationActions = State.availableActions.filter(action => 
