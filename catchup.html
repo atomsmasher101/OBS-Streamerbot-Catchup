@@ -107,6 +107,12 @@
             transform: translateY(2px);
         }
 
+        .drag-preview {
+            opacity: 0.95;
+            transform: rotate(1deg);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+        }
+
         /* Color Coding */
         .card.SubBomb { 
             border-left-color: var(--yellow); 
@@ -512,10 +518,42 @@ const State = {
     activeId: null,
     draggedElement: null,
     draggedId: null,
+    dragPreview: null,
     availableActions: [],
     currentConfigType: null,
     currentConfigEvent: null
 };
+
+function createDragPreview(card) {
+    const preview = card.cloneNode(true);
+    preview.classList.remove('dragging', 'drag-over', 'active-celebration', 'initiating', 'initiating-pulse');
+    preview.classList.add('drag-preview');
+
+    const skipBtn = preview.querySelector('.skip-btn');
+    if (skipBtn) skipBtn.remove();
+
+    const dragHandle = preview.querySelector('.drag-handle');
+    if (dragHandle) dragHandle.style.opacity = '0.8';
+
+    const { width } = card.getBoundingClientRect();
+    preview.style.width = `${Math.max(220, width)}px`;
+    preview.style.position = 'fixed';
+    preview.style.top = '-1000px';
+    preview.style.left = '-1000px';
+    preview.style.pointerEvents = 'none';
+
+    document.body.appendChild(preview);
+    State.dragPreview = preview;
+
+    return preview;
+}
+
+function cleanupDragPreview() {
+    if (State.dragPreview) {
+        State.dragPreview.remove();
+        State.dragPreview = null;
+    }
+}
 
 /* =========================================================
    LOGGER
@@ -1070,6 +1108,10 @@ function attachDragHandlers(card) {
         State.draggedId = card.dataset.id;
         card.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
+
+        cleanupDragPreview();
+        const preview = createDragPreview(card);
+        e.dataTransfer.setDragImage(preview, 24, 20);
         
         // Show bottom drop zone
         const dropZone = document.getElementById('drop-zone-bottom');
@@ -1081,6 +1123,8 @@ function attachDragHandlers(card) {
     dragHandle.addEventListener('dragend', (e) => {
         card.classList.remove('dragging');
         State.draggedElement = null;
+        State.draggedId = null;
+        cleanupDragPreview();
         
         // Remove drag-over class from all cards and hide drop zone
         document.querySelectorAll('.card').forEach(c => {
