@@ -6,10 +6,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@streamerbot/client/dist/streamerbot-client.js"></script>
     <style>
         :root {
-            --pink: #ff69b4;
-            --purple: #9370db;
-            --yellow: #ffff00;
-            --cyan: #00ffff;
+            --accent: #ff69b4;
+            --sub: #9370db;
+            --sub-bomb: #ffff00;
+            --cheer: #00ffff;
             --bg: #0d0d12;
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
@@ -40,7 +40,7 @@
         h1 {
             font-size: 0.9rem;
             letter-spacing: 2px;
-            color: var(--pink);
+            color: var(--accent);
             margin: 0;
             text-transform: uppercase;
         }
@@ -77,15 +77,15 @@
         }
 
         #drop-zone-bottom.drag-over {
-            border-color: var(--cyan);
+            border-color: var(--cheer);
             background: rgba(0, 255, 255, 0.05);
-            color: var(--cyan);
+            color: var(--cheer);
         }
 
         .card {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-left: 4px solid var(--purple);
+            border-left: 4px solid var(--sub);
             padding: var(--card-padding);
             border-radius: 4px;
             cursor: pointer;
@@ -104,7 +104,7 @@
         }
 
         .card.drag-over {
-            border-top: 3px solid var(--cyan);
+            border-top: 3px solid var(--cheer);
             transform: translateY(2px);
         }
 
@@ -116,17 +116,17 @@
 
         /* Color Coding */
         .card.SubBomb { 
-            border-left-color: var(--yellow); 
+            border-left-color: var(--sub-bomb); 
             box-shadow: inset 5px 0 10px -5px rgba(255, 255, 0, 0.3);
         }
 
         .card.Cheer { 
-            border-left-color: var(--cyan); 
+            border-left-color: var(--cheer); 
             box-shadow: inset 5px 0 10px -5px rgba(0, 255, 255, 0.3);
         }
 
         .card.Sub { 
-            border-left-color: var(--purple); 
+            border-left-color: var(--sub); 
         }
 
         .user {
@@ -144,13 +144,13 @@
 
         .time {
             font-size: 0.6rem;
-            color: var(--pink);
+            color: var(--accent);
             float: right;
         }
 
         .active-celebration {
             animation: pulse 0.8s infinite ease-in-out;
-            border-color: var(--cyan);
+            border-color: var(--cheer);
             pointer-events: none;
         }
 
@@ -170,13 +170,13 @@
 
         /* New state for when the card is clicked */
         .card.initiating {
-            border-color: var(--cyan) !important;
+            border-color: var(--cheer) !important;
             background: rgba(0, 255, 255, 0.1);
             pointer-events: none;
         }
 
         .card.initiating .detail {
-            color: var(--cyan);
+            color: var(--cheer);
             font-weight: bold;
             letter-spacing: 1px;
         }
@@ -259,7 +259,7 @@
 
         .modal {
             background: linear-gradient(135deg, rgba(13, 13, 18, 0.95), rgba(20, 20, 30, 0.95));
-            border: 2px solid var(--purple);
+            border: 2px solid var(--sub);
             border-radius: 8px;
             padding: 20px;
             max-width: 280px;
@@ -270,7 +270,7 @@
         .modal h2 {
             margin: 0 0 12px 0;
             font-size: 0.9rem;
-            color: var(--pink);
+            color: var(--accent);
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -287,7 +287,7 @@
         .modal label {
             display: block;
             font-size: 0.65rem;
-            color: var(--cyan);
+            color: var(--cheer);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -308,7 +308,7 @@
 
         .modal select:focus {
             outline: none;
-            border-color: var(--pink);
+            border-color: var(--accent);
             box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
         }
 
@@ -346,7 +346,7 @@
         .setup-tab.active {
             color: white;
             background: linear-gradient(135deg, rgba(147, 112, 219, 0.35), rgba(255, 105, 180, 0.35));
-            border-color: var(--pink);
+            border-color: var(--accent);
             box-shadow: 0 0 12px rgba(255, 105, 180, 0.25);
         }
 
@@ -369,7 +369,7 @@
         .visual-setting label {
             display: block;
             font-size: 0.65rem;
-            color: var(--cyan);
+            color: var(--cheer);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -402,14 +402,14 @@
         }
 
         .modal button:hover {
-            border-color: var(--purple);
+            border-color: var(--sub);
             background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
             box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
         }
 
         .modal button.primary {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            border-color: var(--pink);
+            background: linear-gradient(135deg, var(--sub), var(--accent));
+            border-color: var(--accent);
         }
 
         .modal button.primary:hover {
@@ -471,7 +471,7 @@
 
         .control-bar select:hover,
         .control-bar button:hover {
-            border-color: var(--purple);
+            border-color: var(--sub);
             background: linear-gradient(135deg, rgba(147, 112, 219, 0.25), rgba(255, 105, 180, 0.25));
             box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
             transform: translateY(-1px);
@@ -480,7 +480,7 @@
         .control-bar select:focus,
         .control-bar button:focus {
             outline: none;
-            border-color: var(--pink);
+            border-color: var(--accent);
             box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
         }
 
@@ -500,7 +500,7 @@
         .control-bar select:hover option,
         .control-bar select option:checked {
             background: var(--bg);
-            color: var(--pink);
+            color: var(--accent);
         }
     </style>
 </head>
@@ -647,28 +647,28 @@ const State = {
 
 const VISUAL_THEMES = {
     neon: {
-        pink: '#ff69b4',
-        purple: '#9370db',
-        yellow: '#ffff00',
-        cyan: '#00ffff',
+        accent: '#ff69b4',
+        sub: '#9370db',
+        subBomb: '#ffff00',
+        cheer: '#00ffff',
         bg: '#0d0d12',
         glass: 'rgba(255, 255, 255, 0.05)',
         glassBorder: 'rgba(255, 255, 255, 0.1)'
     },
     ocean: {
-        pink: '#54b4ff',
-        purple: '#4f6cf0',
-        yellow: '#9bf6ff',
-        cyan: '#00d8ff',
+        accent: '#54b4ff',
+        sub: '#4f6cf0',
+        subBomb: '#9bf6ff',
+        cheer: '#00d8ff',
         bg: '#091522',
         glass: 'rgba(75, 130, 180, 0.16)',
         glassBorder: 'rgba(125, 200, 255, 0.25)'
     },
     sunset: {
-        pink: '#ff8a5b',
-        purple: '#ff477e',
-        yellow: '#ffd166',
-        cyan: '#ffadad',
+        accent: '#ff8a5b',
+        sub: '#ff477e',
+        subBomb: '#ffd166',
+        cheer: '#ffadad',
         bg: '#1a0f14',
         glass: 'rgba(255, 166, 128, 0.14)',
         glassBorder: 'rgba(255, 201, 158, 0.22)'
@@ -733,7 +733,6 @@ function initApp() {
     buildControlBar();
     initializeStreamerbotClient();
     setupModal();
-    loadVisualSettings();
     applyVisualSettings();
 }
 
@@ -855,39 +854,76 @@ function setupModal() {
         DOM.setup.overlay.classList.remove('visible');
     };
 
-    DOM.setup.saveVisuals.onclick = () => {
+    DOM.setup.saveVisuals.onclick = async () => {
         State.visualSettings = {
             theme: DOM.setup.theme.value,
             textSize: DOM.setup.textSize.value,
             density: DOM.setup.density.value
         };
 
-        applyVisualSettings();
-        persistVisualSettings();
-        DOM.setup.overlay.classList.remove('visible');
-        log('Visual settings saved');
+        try {
+            await persistVisualSettings();
+            applyVisualSettings();
+            DOM.setup.overlay.classList.remove('visible');
+            log('Visual settings saved');
+        } catch (err) {
+            log(`Failed to save visual settings: ${err.message}`);
+        }
     };
 
 }
 
-function loadVisualSettings() {
-    try {
-        const raw = localStorage.getItem('catchupVisualSettings');
-        if (!raw) return;
-
-        const saved = JSON.parse(raw);
-        State.visualSettings = {
-            theme: saved.theme || State.visualSettings.theme,
-            textSize: saved.textSize || State.visualSettings.textSize,
-            density: saved.density || State.visualSettings.density
-        };
-    } catch (err) {
-        log(`Failed to load visual settings: ${err.message}`);
-    }
+function normalizeVisualSettings(settings) {
+    return {
+        theme: VISUAL_THEMES[settings.theme] ? settings.theme : 'neon',
+        textSize: TEXT_SIZE_MAP[settings.textSize] ? settings.textSize : 'normal',
+        density: CARD_DENSITY_MAP[settings.density] ? settings.density : 'comfortable'
+    };
 }
 
-function persistVisualSettings() {
-    localStorage.setItem('catchupVisualSettings', JSON.stringify(State.visualSettings));
+async function loadVisualSettings() {
+    if (!State.client) return;
+
+    const fallback = normalizeVisualSettings(State.visualSettings);
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'ensure',
+            theme: fallback.theme,
+            textSize: fallback.textSize,
+            density: fallback.density
+        }
+    );
+
+    const [themeResponse, textSizeResponse, densityResponse] = await Promise.all([
+        State.client.getGlobal('catchupVisualTheme', true),
+        State.client.getGlobal('catchupVisualTextSize', true),
+        State.client.getGlobal('catchupVisualDensity', true)
+    ]);
+
+    State.visualSettings = normalizeVisualSettings({
+        theme: themeResponse?.variable?.value || fallback.theme,
+        textSize: textSizeResponse?.variable?.value || fallback.textSize,
+        density: densityResponse?.variable?.value || fallback.density
+    });
+}
+
+async function persistVisualSettings() {
+    const sanitized = normalizeVisualSettings(State.visualSettings);
+    State.visualSettings = sanitized;
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'save',
+            theme: sanitized.theme,
+            textSize: sanitized.textSize,
+            density: sanitized.density
+        }
+    );
 }
 
 function applyVisualSettings() {
@@ -896,10 +932,10 @@ function applyVisualSettings() {
     const textSize = TEXT_SIZE_MAP[State.visualSettings.textSize] || TEXT_SIZE_MAP.normal;
     const cardPadding = CARD_DENSITY_MAP[State.visualSettings.density] || CARD_DENSITY_MAP.comfortable;
 
-    root.style.setProperty('--pink', theme.pink);
-    root.style.setProperty('--purple', theme.purple);
-    root.style.setProperty('--yellow', theme.yellow);
-    root.style.setProperty('--cyan', theme.cyan);
+    root.style.setProperty('--accent', theme.accent);
+    root.style.setProperty('--sub', theme.sub);
+    root.style.setProperty('--sub-bomb', theme.subBomb);
+    root.style.setProperty('--cheer', theme.cheer);
     root.style.setProperty('--bg', theme.bg);
     root.style.setProperty('--glass', theme.glass);
     root.style.setProperty('--glass-border', theme.glassBorder);
@@ -963,7 +999,7 @@ async function showSetupModal() {
         const label = document.createElement('label');
         label.style.display = 'block';
         label.style.fontSize = '0.65rem';
-        label.style.color = 'var(--cyan)';
+        label.style.color = 'var(--cheer)';
         label.style.marginBottom = '6px';
         label.style.textTransform = 'uppercase';
         label.textContent = `${eventType.icon} ${eventType.label}`;
@@ -999,7 +1035,7 @@ async function showSetupModal() {
         if (currentValue) {
             select.value = currentValue;
             // Highlight that this is already configured
-            label.innerHTML = `${eventType.icon} ${eventType.label} <span style="color: var(--pink); font-size: 0.6rem;">✓ CONFIGURED</span>`;
+            label.innerHTML = `${eventType.icon} ${eventType.label} <span style="color: var(--accent); font-size: 0.6rem;">✓ CONFIGURED</span>`;
         }
         
         field.appendChild(label);
@@ -1194,8 +1230,10 @@ function handleConfigNeeded(event) {
     }
 }
 
-function handleConnection() {
+async function handleConnection() {
     DOM.stats.innerText = "Connected";
+    await loadVisualSettings();
+    applyVisualSettings();
     fetchEvents();
     loadActions();
 }
