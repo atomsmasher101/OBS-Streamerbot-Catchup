@@ -13,13 +13,46 @@
             --bg: #0d0d12;
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #bbbbbb;
+            --text-muted: #777777;
+            --debug-text: #5c5c66;
+            --debug-border: #2a2a33;
+            --drop-zone-border: rgba(255, 255, 255, 0.1);
+            --drop-zone-text: rgba(255, 255, 255, 0.3);
+            --drop-zone-active-bg: rgba(0, 255, 255, 0.05);
+            --card-hover-bg: rgba(255, 255, 255, 0.08);
+            --drag-preview-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            --sub-bomb-glow: rgba(255, 255, 0, 0.3);
+            --cheer-glow: rgba(0, 255, 255, 0.3);
+            --cheer-soft-bg: rgba(0, 255, 255, 0.1);
+            --overlay-bg: rgba(0, 0, 0, 0.85);
+            --modal-bg-start: rgba(13, 13, 18, 0.95);
+            --modal-bg-end: rgba(20, 20, 30, 0.95);
+            --modal-glow: rgba(147, 112, 219, 0.5);
+            --panel-bg: rgba(255, 255, 255, 0.02);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(147, 112, 219, 0.4);
+            --button-bg-start: rgba(147, 112, 219, 0.2);
+            --button-bg-end: rgba(255, 105, 180, 0.2);
+            --button-hover-start: rgba(147, 112, 219, 0.3);
+            --button-hover-end: rgba(255, 105, 180, 0.3);
+            --button-glow: rgba(147, 112, 219, 0.4);
+            --focus-glow: rgba(255, 105, 180, 0.5);
+            --tab-active-start: rgba(147, 112, 219, 0.35);
+            --tab-active-end: rgba(255, 105, 180, 0.35);
+            --tab-active-glow: rgba(255, 105, 180, 0.25);
+            --text-inverse: #ffffff;
+            --skip-btn-bg: #ff3b3b;
+            --skip-btn-hover-bg: #ff0000;
             --card-padding: 10px;
+            --color-scheme: dark;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
-            color: white;
+            color: var(--text-primary);
             margin: 0;
             padding: 12px;
             overflow-x: hidden;
@@ -47,7 +80,7 @@
 
         #stats {
             font-size: 0.7rem;
-            color: #777;
+            color: var(--text-muted);
             margin-top: 2px;
         }
 
@@ -61,12 +94,12 @@
 
         #drop-zone-bottom {
             height: 40px;
-            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border: 2px dashed var(--drop-zone-border);
             border-radius: 4px;
             display: none;
             align-items: center;
             justify-content: center;
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--drop-zone-text);
             font-size: 0.7rem;
             margin-top: 4px;
             transition: all 0.2s;
@@ -95,7 +128,7 @@
 
         .card:hover {
             transform: translateX(4px);
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--card-hover-bg);
         }
 
         .card.dragging {
@@ -111,7 +144,7 @@
         .drag-preview {
             opacity: 0.95;
             transform: rotate(1deg);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            box-shadow: var(--drag-preview-shadow);
         }
 
         /* Color Coding */
@@ -131,14 +164,14 @@
 
         .user {
             font-weight: 800;
-            color: #fff;
+            color: var(--text-primary);
             display: block;
             font-size: 1rem;
             margin-bottom: 2px;
         }
 
         .detail {
-            color: #bbb;
+            color: var(--text-secondary);
             font-size: 0.8rem;
         }
 
@@ -161,9 +194,9 @@
 
         #debug-log {
             font-size: 0.6rem;
-            color: #333;
+            color: var(--debug-text);
             margin-top: 20px;
-            border-top: 1px dashed #222;
+            border-top: 1px dashed var(--debug-border);
             padding-top: 10px;
             font-family: monospace;
         }
@@ -196,9 +229,9 @@
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: #ff3b3b;
+            background: var(--skip-btn-bg);
             border: none;
-            color: white;
+            color: var(--text-primary);
             font-size: 0.7rem;
             padding: 4px 8px;
             border-radius: 3px;
@@ -213,7 +246,7 @@
         }
 
         .skip-btn:hover {
-            background: #ff0000;
+            background: var(--skip-btn-hover-bg);
         }
 
         .drag-handle {
@@ -221,7 +254,7 @@
             left: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--drop-zone-text);
             font-size: 1rem;
             cursor: grab;
             user-select: none;
@@ -231,7 +264,7 @@
 
         .card:hover .drag-handle {
             opacity: 1;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
         }
 
         .drag-handle:active {
@@ -245,7 +278,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: var(--overlay-bg);
             backdrop-filter: blur(5px);
             display: none;
             align-items: center;
@@ -264,7 +297,7 @@
             padding: 20px;
             max-width: 280px;
             width: 90%;
-            box-shadow: 0 0 30px rgba(147, 112, 219, 0.5);
+            box-shadow: 0 0 30px var(--modal-glow);
         }
 
         .modal h2 {
@@ -278,7 +311,7 @@
 
         .modal p {
             font-size: 0.75rem;
-            color: #bbb;
+            color: var(--text-secondary);
             margin: 0 0 15px 0;
             text-align: center;
             line-height: 1.4;
@@ -295,10 +328,10 @@
 
         .modal select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.7rem;
             padding: 8px;
             border-radius: 4px;
@@ -314,7 +347,7 @@
 
         .modal select option {
             background: var(--bg);
-            color: white;
+            color: var(--text-primary);
         }
 
         .modal-buttons {
@@ -331,9 +364,9 @@
 
         .setup-tab {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: #cfcfcf;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
             font-size: 0.62rem;
             padding: 8px;
             border-radius: 4px;
@@ -377,10 +410,10 @@
 
         .visual-setting select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.7rem;
             padding: 8px;
             border-radius: 4px;
@@ -388,9 +421,9 @@
         }
 
         .modal button {
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.2), rgba(255, 105, 180, 0.2));
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
+            background: linear-gradient(135deg, var(--button-bg-start), var(--button-bg-end));
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
             font-size: 0.65rem;
             padding: 8px 16px;
             border-radius: 4px;
@@ -413,13 +446,13 @@
         }
 
         .modal button.primary:hover {
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+            box-shadow: 0 0 20px var(--focus-glow);
             transform: translateY(-1px);
         }
 
         .event-type-badge {
             display: inline-block;
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
             padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.7rem;
@@ -435,7 +468,7 @@
             gap: 6px;
             margin-top: 10px;
             padding: 6px;
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--panel-bg);
             border-radius: 6px;
             border: 1px solid var(--glass-border);
             position: relative;
@@ -444,10 +477,10 @@
 
         .control-bar select,
         .control-bar button {
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.15), rgba(255, 105, 180, 0.15));
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: linear-gradient(135deg, var(--button-bg-start), var(--button-bg-end));
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.6rem;
             padding: 5px 8px;
             border-radius: 4px;
@@ -486,14 +519,14 @@
 
         .control-bar button:active {
             transform: translateY(0);
-            box-shadow: 0 0 10px rgba(147, 112, 219, 0.3);
+            box-shadow: 0 0 10px var(--button-glow);
         }
 
         .control-bar select option,
         .modal select option,
         #setup-fields select option {
             background: var(--bg);
-            color: white;
+            color: var(--text-primary);
         }
 
         /* Neon glow effect for active states */
@@ -558,6 +591,8 @@
                         <option value="neon">Neon (Default)</option>
                         <option value="ocean">Ocean</option>
                         <option value="sunset">Sunset</option>
+                        <option value="daylight">Daylight</option>
+                        <option value="paper">Paper</option>
                     </select>
                 </div>
 
@@ -653,7 +688,15 @@ const VISUAL_THEMES = {
         cheer: '#00ffff',
         bg: '#0d0d12',
         glass: 'rgba(255, 255, 255, 0.05)',
-        glassBorder: 'rgba(255, 255, 255, 0.1)'
+        glassBorder: 'rgba(255, 255, 255, 0.1)',
+        textPrimary: '#ffffff',
+        textSecondary: '#bbbbbb',
+        textMuted: '#777777',
+        panelBg: 'rgba(255, 255, 255, 0.02)',
+        inputBg: 'rgba(255, 255, 255, 0.05)',
+        inputBorder: 'rgba(147, 112, 219, 0.4)',
+        overlayBg: 'rgba(0, 0, 0, 0.85)',
+        colorScheme: 'dark'
     },
     ocean: {
         accent: '#54b4ff',
@@ -662,7 +705,15 @@ const VISUAL_THEMES = {
         cheer: '#69FFD3',
         bg: '#005671',
         glass: 'rgba(75, 130, 180, 0.16)',
-        glassBorder: 'rgba(125, 200, 255, 0.25)'
+        glassBorder: 'rgba(125, 200, 255, 0.25)',
+        textPrimary: '#eef8ff',
+        textSecondary: '#bed7eb',
+        textMuted: '#7fa2bf',
+        panelBg: 'rgba(138, 187, 224, 0.15)',
+        inputBg: 'rgba(129, 181, 219, 0.2)',
+        inputBorder: 'rgba(125, 200, 255, 0.45)',
+        overlayBg: 'rgba(2, 18, 34, 0.82)',
+        colorScheme: 'dark'
     },
     sunset: {
         accent: '#ff8a5b',
@@ -671,7 +722,49 @@ const VISUAL_THEMES = {
         cheer: '#ffadad',
         bg: '#1a0f14',
         glass: 'rgba(255, 166, 128, 0.14)',
-        glassBorder: 'rgba(255, 201, 158, 0.22)'
+        glassBorder: 'rgba(255, 201, 158, 0.22)',
+        textPrimary: '#fff4ee',
+        textSecondary: '#f3cab8',
+        textMuted: '#c48e79',
+        panelBg: 'rgba(255, 166, 128, 0.09)',
+        inputBg: 'rgba(255, 166, 128, 0.14)',
+        inputBorder: 'rgba(255, 201, 158, 0.38)',
+        overlayBg: 'rgba(28, 12, 16, 0.8)',
+        colorScheme: 'dark'
+    },
+    daylight: {
+        accent: '#da4d9a',
+        sub: '#6f5be8',
+        subBomb: '#d1a600',
+        cheer: '#008eb5',
+        bg: '#f5f8ff',
+        glass: 'rgba(255, 255, 255, 0.85)',
+        glassBorder: 'rgba(98, 121, 173, 0.25)',
+        textPrimary: '#1f2a40',
+        textSecondary: '#44506d',
+        textMuted: '#687491',
+        panelBg: 'rgba(227, 234, 247, 0.85)',
+        inputBg: 'rgba(255, 255, 255, 0.95)',
+        inputBorder: 'rgba(111, 91, 232, 0.35)',
+        overlayBg: 'rgba(215, 225, 245, 0.78)',
+        colorScheme: 'light'
+    },
+    paper: {
+        accent: '#bd3a7e',
+        sub: '#7254cf',
+        subBomb: '#9b8400',
+        cheer: '#0f8aa8',
+        bg: '#fdf8f2',
+        glass: 'rgba(255, 255, 255, 0.9)',
+        glassBorder: 'rgba(145, 117, 90, 0.2)',
+        textPrimary: '#2d261f',
+        textSecondary: '#5d5143',
+        textMuted: '#827462',
+        panelBg: 'rgba(245, 235, 224, 0.82)',
+        inputBg: 'rgba(255, 255, 255, 0.92)',
+        inputBorder: 'rgba(114, 84, 207, 0.3)',
+        overlayBg: 'rgba(236, 225, 213, 0.76)',
+        colorScheme: 'light'
     }
 };
 
@@ -939,6 +1032,41 @@ function applyVisualSettings() {
     root.style.setProperty('--bg', theme.bg);
     root.style.setProperty('--glass', theme.glass);
     root.style.setProperty('--glass-border', theme.glassBorder);
+    root.style.setProperty('--text-primary', theme.textPrimary || '#ffffff');
+    root.style.setProperty('--text-secondary', theme.textSecondary || '#bbbbbb');
+    root.style.setProperty('--text-muted', theme.textMuted || '#777777');
+    root.style.setProperty('--panel-bg', theme.panelBg || 'rgba(255, 255, 255, 0.02)');
+    root.style.setProperty('--input-bg', theme.inputBg || 'rgba(255, 255, 255, 0.05)');
+    root.style.setProperty('--input-border', theme.inputBorder || 'rgba(147, 112, 219, 0.4)');
+    root.style.setProperty('--overlay-bg', theme.overlayBg || 'rgba(0, 0, 0, 0.85)');
+    root.style.setProperty('--color-scheme', theme.colorScheme || 'dark');
+
+    const isLightTheme = (theme.colorScheme || 'dark') === 'light';
+    root.style.setProperty('--debug-text', isLightTheme ? '#6e778d' : '#5c5c66');
+    root.style.setProperty('--debug-border', isLightTheme ? '#b6bfd4' : '#2a2a33');
+    root.style.setProperty('--drop-zone-border', isLightTheme ? 'rgba(89, 104, 136, 0.35)' : 'rgba(255, 255, 255, 0.1)');
+    root.style.setProperty('--drop-zone-text', isLightTheme ? 'rgba(68, 80, 109, 0.7)' : 'rgba(255, 255, 255, 0.3)');
+    root.style.setProperty('--drop-zone-active-bg', isLightTheme ? 'rgba(0, 142, 181, 0.12)' : 'rgba(0, 255, 255, 0.05)');
+    root.style.setProperty('--card-hover-bg', isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--drag-preview-shadow', isLightTheme
+        ? '0 10px 24px rgba(31, 42, 64, 0.2), 0 0 0 1px rgba(98, 121, 173, 0.28) inset'
+        : '0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset');
+    root.style.setProperty('--sub-bomb-glow', isLightTheme ? 'rgba(209, 166, 0, 0.28)' : 'rgba(255, 255, 0, 0.3)');
+    root.style.setProperty('--cheer-glow', isLightTheme ? 'rgba(0, 142, 181, 0.28)' : 'rgba(0, 255, 255, 0.3)');
+    root.style.setProperty('--cheer-soft-bg', isLightTheme ? 'rgba(0, 142, 181, 0.14)' : 'rgba(0, 255, 255, 0.1)');
+    root.style.setProperty('--modal-bg-start', isLightTheme ? 'rgba(255, 255, 255, 0.97)' : 'rgba(13, 13, 18, 0.95)');
+    root.style.setProperty('--modal-bg-end', isLightTheme ? 'rgba(240, 245, 255, 0.95)' : 'rgba(20, 20, 30, 0.95)');
+    root.style.setProperty('--modal-glow', isLightTheme ? 'rgba(111, 91, 232, 0.25)' : 'rgba(147, 112, 219, 0.5)');
+    root.style.setProperty('--button-bg-start', isLightTheme ? 'rgba(111, 91, 232, 0.16)' : 'rgba(147, 112, 219, 0.2)');
+    root.style.setProperty('--button-bg-end', isLightTheme ? 'rgba(218, 77, 154, 0.16)' : 'rgba(255, 105, 180, 0.2)');
+    root.style.setProperty('--button-hover-start', isLightTheme ? 'rgba(111, 91, 232, 0.24)' : 'rgba(147, 112, 219, 0.3)');
+    root.style.setProperty('--button-hover-end', isLightTheme ? 'rgba(218, 77, 154, 0.24)' : 'rgba(255, 105, 180, 0.3)');
+    root.style.setProperty('--button-glow', isLightTheme ? 'rgba(111, 91, 232, 0.28)' : 'rgba(147, 112, 219, 0.4)');
+    root.style.setProperty('--focus-glow', isLightTheme ? 'rgba(218, 77, 154, 0.35)' : 'rgba(255, 105, 180, 0.5)');
+    root.style.setProperty('--tab-active-start', isLightTheme ? 'rgba(111, 91, 232, 0.22)' : 'rgba(147, 112, 219, 0.35)');
+    root.style.setProperty('--tab-active-end', isLightTheme ? 'rgba(218, 77, 154, 0.22)' : 'rgba(255, 105, 180, 0.35)');
+    root.style.setProperty('--tab-active-glow', isLightTheme ? 'rgba(218, 77, 154, 0.28)' : 'rgba(255, 105, 180, 0.25)');
+
     root.style.setProperty('--card-padding', cardPadding);
     root.style.fontSize = textSize;
 }
@@ -1003,10 +1131,10 @@ async function showSetupModal() {
         const select = document.createElement('select');
         select.id = `setup-${eventType.type.toLowerCase()}`;
         select.style.width = '100%';
-        select.style.background = 'rgba(255, 255, 255, 0.05)';
-        select.style.border = '1px solid rgba(147, 112, 219, 0.4)';
-        select.style.color = 'white';
-        select.style.colorScheme = 'dark';
+        select.style.background = 'var(--input-bg)';
+        select.style.border = '1px solid var(--input-border)';
+        select.style.color = 'var(--text-primary)';
+        select.style.colorScheme = 'var(--color-scheme)';
         select.style.fontSize = '0.7rem';
         select.style.padding = '8px';
         select.style.borderRadius = '4px';
