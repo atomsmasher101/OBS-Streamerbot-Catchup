@@ -291,6 +291,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(147, 112, 219, 0.4);
             color: white;
+            color-scheme: dark;
             font-size: 0.7rem;
             padding: 8px;
             border-radius: 4px;
@@ -375,6 +376,7 @@
             background: linear-gradient(135deg, rgba(147, 112, 219, 0.15), rgba(255, 105, 180, 0.15));
             border: 1px solid rgba(147, 112, 219, 0.4);
             color: white;
+            color-scheme: dark;
             font-size: 0.6rem;
             padding: 5px 8px;
             border-radius: 4px;
@@ -414,6 +416,13 @@
         .control-bar button:active {
             transform: translateY(0);
             box-shadow: 0 0 10px rgba(147, 112, 219, 0.3);
+        }
+
+        .control-bar select option,
+        .modal select option,
+        #setup-fields select option {
+            background: var(--bg);
+            color: white;
         }
 
         /* Neon glow effect for active states */
@@ -691,6 +700,7 @@ async function showSetupModal() {
         select.style.background = 'rgba(255, 255, 255, 0.05)';
         select.style.border = '1px solid rgba(147, 112, 219, 0.4)';
         select.style.color = 'white';
+        select.style.colorScheme = 'dark';
         select.style.fontSize = '0.7rem';
         select.style.padding = '8px';
         select.style.borderRadius = '4px';
