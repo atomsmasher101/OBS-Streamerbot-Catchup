@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Llama Catch-up</title>
+    <script src="https://cdn.jsdelivr.net/npm/@streamerbot/client/dist/streamerbot-client.js"></script>
+    <style>
+        :root {
+            --pink: #ff69b4;
+            --purple: #9370db;
+            --yellow: #ffff00;
+            --cyan: #00ffff;
+            --bg: #0d0d12;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: white;
+            margin: 0;
+            padding: 12px;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        #header {
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--pink);
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        #stats {
+            font-size: 0.7rem;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            min-height: 50px;
+        }
+
+        #drop-zone-bottom {
+            height: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.7rem;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+
+        #drop-zone-bottom.visible {
+            display: flex;
+        }
+
+        #drop-zone-bottom.drag-over {
+            border-color: var(--cyan);
+            background: rgba(0, 255, 255, 0.05);
+            color: var(--cyan);
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--purple);
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .card:hover {
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .card.drag-over {
+            border-top: 3px solid var(--cyan);
+            transform: translateY(2px);
+        }
+
+        /* Color Coding */
+        .card.SubBomb { 
+            border-left-color: var(--yellow); 
+            box-shadow: inset 5px 0 10px -5px rgba(255, 255, 0, 0.3);
+        }
+
+        .card.Cheer { 
+            border-left-color: var(--cyan); 
+            box-shadow: inset 5px 0 10px -5px rgba(0, 255, 255, 0.3);
+        }
+
+        .card.Sub { 
+            border-left-color: var(--purple); 
+        }
+
+        .user {
+            font-weight: 800;
+            color: #fff;
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .detail {
+            color: #bbb;
+            font-size: 0.8rem;
+        }
+
+        .time {
+            font-size: 0.6rem;
+            color: var(--pink);
+            float: right;
+        }
+
+        .active-celebration {
+            animation: pulse 0.8s infinite ease-in-out;
+            border-color: var(--cyan);
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.98); }
+        }
+
+        #debug-log {
+            font-size: 0.6rem;
+            color: #333;
+            margin-top: 20px;
+            border-top: 1px dashed #222;
+            padding-top: 10px;
+            font-family: monospace;
+        }
+
+        /* New state for when the card is clicked */
+        .card.initiating {
+            border-color: var(--cyan) !important;
+            background: rgba(0, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .card.initiating .detail {
+            color: var(--cyan);
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Faster pulse for the initiation phase */
+        .initiating-pulse {
+            animation: rapid-pulse 0.4s infinite alternate;
+        }
+
+        @keyframes rapid-pulse {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.7; transform: scale(0.97); }
+        }
+
+        .skip-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff3b3b;
+            border: none;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 5;
+        }
+
+        .card:hover .skip-btn {
+            opacity: 1;
+        }
+
+        .skip-btn:hover {
+            background: #ff0000;
+        }
+
+        .drag-handle {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            cursor: grab;
+            user-select: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .card:hover .drag-handle {
+            opacity: 1;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Configuration Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, rgba(13, 13, 18, 0.95), rgba(20, 20, 30, 0.95));
+            border: 2px solid var(--purple);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 280px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(147, 112, 219, 0.5);
+        }
+
+        .modal h2 {
+            margin: 0 0 12px 0;
+            font-size: 0.9rem;
+            color: var(--pink);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal p {
+            font-size: 0.75rem;
+            color: #bbb;
+            margin: 0 0 15px 0;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--cyan);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(147, 112, 219, 0.4);
+            color: white;
+            font-size: 0.7rem;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .modal select:focus {
+            outline: none;
+            border-color: var(--pink);
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+        }
+
+        .modal select option {
+            background: var(--bg);
+            color: white;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .modal button {
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.2), rgba(255, 105, 180, 0.2));
+            border: 1px solid rgba(147, 112, 219, 0.4);
+            color: white;
+            font-size: 0.65rem;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .modal button:hover {
+            border-color: var(--purple);
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
+            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+        }
+
+        .modal button.primary {
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            border-color: var(--pink);
+        }
+
+        .modal button.primary:hover {
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .event-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin: 8px 0;
+        }
+
+        /* Control Bar Styles */
+        .control-bar {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 100;
+        }
+
+        .control-bar select,
+        .control-bar button {
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.15), rgba(255, 105, 180, 0.15));
+            border: 1px solid rgba(147, 112, 219, 0.4);
+            color: white;
+            font-size: 0.6rem;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(147, 112, 219, 0);
+        }
+
+        .control-bar select {
+            min-width: 95px;
+            flex: 1;
+        }
+
+        .control-bar button {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .control-bar select:hover,
+        .control-bar button:hover {
+            border-color: var(--purple);
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.25), rgba(255, 105, 180, 0.25));
+            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .control-bar select:focus,
+        .control-bar button:focus {
+            outline: none;
+            border-color: var(--pink);
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+        }
+
+        .control-bar button:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(147, 112, 219, 0.3);
+        }
+
+        /* Neon glow effect for active states */
+        .control-bar select:hover option,
+        .control-bar select option:checked {
+            background: var(--bg);
+            color: var(--pink);
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>CATCH-UP</h1>
+        <div id="stats">Connecting...</div>
+    </div>
+    
+    <div id="container"></div>
+    
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal-overlay">
+        <div class="modal">
+            <h2>⚙️ Setup Required</h2>
+            <p id="modal-message">Please select an action for this event type:</p>
+            <div class="event-type-badge" id="modal-event-type"></div>
+            
+            <label for="action-select">Choose Action:</label>
+            <select id="action-select">
+                <option value="">Loading actions...</option>
+            </select>
+            
+            <div class="modal-buttons">
+                <button id="modal-cancel">Cancel</button>
+                <button id="modal-save" class="primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup All Modal -->
+    <div id="setup-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 320px;">
+            <h2>⚙️ Celebration Setup</h2>
+            <p style="font-size: 0.7rem; margin-bottom: 20px;">Configure actions for all event types:</p>
+            
+            <div id="setup-fields"></div>
+            
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button id="setup-cancel">Cancel</button>
+                <button id="setup-save" class="primary">Save All</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="debug-log">Log: Initializing...</div>
+
+    <script>
+
+/* =========================================================
+   LLAMA CATCH-UP DOCK
+   Production Version (Server-Authoritative + Drag & Drop)
+========================================================= */
+
+const DOM = {
+    container: document.getElementById('container'),
+    stats: document.getElementById('stats'),
+    debug: document.getElementById('debug-log'),
+    header: document.getElementById('header'),
+    modal: {
+        overlay: document.getElementById('config-modal'),
+        message: document.getElementById('modal-message'),
+        eventType: document.getElementById('modal-event-type'),
+        select: document.getElementById('action-select'),
+        cancel: document.getElementById('modal-cancel'),
+        save: document.getElementById('modal-save')
+    },
+    setup: {
+        overlay: document.getElementById('setup-modal'),
+        fields: document.getElementById('setup-fields'),
+        cancel: document.getElementById('setup-cancel'),
+        save: document.getElementById('setup-save')
+    }
+};
+
+const State = {
+    client: null,
+    pendingEvents: [],
+    filter: "All",
+    activeId: null,
+    draggedElement: null,
+    draggedId: null,
+    availableActions: [],
+    currentConfigType: null,
+    currentConfigEvent: null
+};
+
+/* =========================================================
+   LOGGER
+========================================================= */
+function log(message) {
+    DOM.debug.innerText = `Log: ${message}`;
+    console.log("[LlamaCatchup]", message);
+}
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+function initApp() {
+    buildControlBar();
+    initializeStreamerbotClient();
+    setupModal();
+}
+
+/* =========================================================
+   MODAL SETUP
+========================================================= */
+function setupModal() {
+    DOM.modal.cancel.onclick = () => {
+        DOM.modal.overlay.classList.remove('visible');
+        State.currentConfigType = null;
+        State.currentConfigEvent = null;
+    };
+
+    DOM.modal.save.onclick = async () => {
+        const selectedAction = DOM.modal.select.value;
+        if (!selectedAction || !State.currentConfigType) return;
+
+        const varName = getGlobalVarName(State.currentConfigType);
+        
+        log(`=== SAVE DEBUG ===`);
+        log(`Selected from dropdown: "${selectedAction}"`);
+        log(`Variable name: "${varName}"`);
+        log(`Event type: "${State.currentConfigType}"`);
+        
+        try {
+            // Call a C# action to save the global variable
+            // NOTE: We use 'celebrationAction' instead of 'actionName' 
+            // because Streamerbot auto-adds 'actionName' with the action being called
+            const result = await State.client.doAction(
+                { name: "SaveCelebrationConfig" },
+                {
+                    varName: varName,
+                    celebrationAction: selectedAction
+                }
+            );
+            
+            log(`doAction response: ${JSON.stringify(result)}`);
+            log(`Saved ${varName} = ${selectedAction}`);
+            DOM.modal.overlay.classList.remove('visible');
+            
+            // Retry the celebration if we have the event
+            if (State.currentConfigEvent && State.currentConfigEvent.Id) {
+                const eventId = State.currentConfigEvent.Id;
+                setTimeout(() => {
+                    const card = document.querySelector(`[data-id="${eventId}"]`);
+                    if (card) {
+                        const event = State.pendingEvents.find(e => e.Id === eventId);
+                        if (event) {
+                            handleCelebration(card, event);
+                        } else {
+                            log(`Event ${eventId} no longer in pending list`);
+                        }
+                    } else {
+                        log(`Card for event ${eventId} not found`);
+                    }
+                }, 500);
+            }
+            
+            State.currentConfigType = null;
+            State.currentConfigEvent = null;
+        } catch (err) {
+            log(`Error saving config: ${err.message}`);
+        }
+    };
+
+    // Setup modal handlers
+    DOM.setup.cancel.onclick = () => {
+        DOM.setup.overlay.classList.remove('visible');
+    };
+
+    DOM.setup.save.onclick = async () => {
+        const configs = [
+            { type: 'NewSub', select: 'setup-newsub' },
+            { type: 'Resub', select: 'setup-resub' },
+            { type: 'GiftSub', select: 'setup-giftsub' },
+            { type: 'SubBomb', select: 'setup-subbomb' },
+            { type: 'Cheer', select: 'setup-cheer' }
+        ];
+
+        try {
+            for (const config of configs) {
+                const select = document.getElementById(config.select);
+                const selectedAction = select?.value;
+                
+                if (selectedAction && selectedAction !== '') {
+                    const varName = getGlobalVarName(config.type);
+                    await State.client.doAction(
+                        { name: "SaveCelebrationConfig" },
+                        {
+                            varName: varName,
+                            celebrationAction: selectedAction
+                        }
+                    );
+                    log(`Configured ${config.type}: ${selectedAction}`);
+                }
+            }
+            
+            log('Setup complete!');
+            DOM.setup.overlay.classList.remove('visible');
+        } catch (err) {
+            log(`Error during setup: ${err.message}`);
+        }
+    };
+}
+
+async function showSetupModal() {
+    // Ensure actions are loaded
+    if (State.availableActions.length === 0) {
+        await loadActions();
+    }
+
+    // Filter out system actions
+    const systemActions = [
+        'SaveCelebrationConfig',
+        'CelebrationManager',
+        'CelebrationAlert',  // Old action, kept for compatibility
+        'StoreEvent',
+        'SkipCelebration',   // Old action, kept for compatibility
+        'SortCelebrations',  // Old action, kept for compatibility
+        'HandleSingleGift',
+        'TestConfigEvent'
+    ];
+
+    const celebrationActions = State.availableActions.filter(action => 
+        !systemActions.includes(action.name)
+    );
+
+    // Get current config values
+    const eventTypes = [
+        { type: 'NewSub', label: 'New Subscription', icon: '💜', varName: 'newSubAction' },
+        { type: 'Resub', label: 'Resubscription', icon: '🔄', varName: 'resubAction' },
+        { type: 'GiftSub', label: 'Gifted Sub', icon: '🎁', varName: 'giftSubAction' },
+        { type: 'SubBomb', label: 'Sub Bomb', icon: '💣', varName: 'subBombAction' },
+        { type: 'Cheer', label: 'Cheer / Bits', icon: '💎', varName: 'cheerAction' }
+    ];
+
+    // Load current values from global variables
+    const currentValues = {};
+    try {
+        for (const eventType of eventTypes) {
+            const result = await State.client.getGlobal(eventType.varName, true);
+            currentValues[eventType.varName] = result?.variable?.value || '';
+            log(`Current ${eventType.varName}: ${currentValues[eventType.varName]}`);
+        }
+    } catch (err) {
+        log(`Error loading current config: ${err.message}`);
+    }
+
+    // Build fields
+    DOM.setup.fields.innerHTML = '';
+    
+    for (const eventType of eventTypes) {
+        const field = document.createElement('div');
+        field.style.marginBottom = '15px';
+        
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        label.style.fontSize = '0.65rem';
+        label.style.color = 'var(--cyan)';
+        label.style.marginBottom = '6px';
+        label.style.textTransform = 'uppercase';
+        label.textContent = `${eventType.icon} ${eventType.label}`;
+        
+        const select = document.createElement('select');
+        select.id = `setup-${eventType.type.toLowerCase()}`;
+        select.style.width = '100%';
+        select.style.background = 'rgba(255, 255, 255, 0.05)';
+        select.style.border = '1px solid rgba(147, 112, 219, 0.4)';
+        select.style.color = 'white';
+        select.style.fontSize = '0.7rem';
+        select.style.padding = '8px';
+        select.style.borderRadius = '4px';
+        select.style.cursor = 'pointer';
+        
+        // Add empty option
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '-- Not Configured --';
+        select.appendChild(emptyOption);
+        
+        // Add all celebration actions
+        celebrationActions.forEach(action => {
+            const option = document.createElement('option');
+            option.value = action.name;
+            option.textContent = action.name;
+            select.appendChild(option);
+        });
+        
+        // Set current value if it exists
+        const currentValue = currentValues[eventType.varName];
+        if (currentValue) {
+            select.value = currentValue;
+            // Highlight that this is already configured
+            label.innerHTML = `${eventType.icon} ${eventType.label} <span style="color: var(--pink); font-size: 0.6rem;">✓ CONFIGURED</span>`;
+        }
+        
+        field.appendChild(label);
+        field.appendChild(select);
+        DOM.setup.fields.appendChild(field);
+    }
+
+    DOM.setup.overlay.classList.add('visible');
+}
+
+async function loadActions() {
+    try {
+        const result = await State.client.getActions();
+        State.availableActions = result.actions || [];
+        // Silently loaded - only log if there's an issue
+    } catch (err) {
+        log(`Error loading actions: ${err.message}`);
+        State.availableActions = [];
+    }
+}
+
+function getGlobalVarName(eventType) {
+    const typeMap = {
+        'NewSub': 'newSubAction',
+        'Resub': 'resubAction',
+        'GiftSub': 'giftSubAction',
+        'SubBomb': 'subBombAction',
+        'Cheer': 'cheerAction'
+    };
+    return typeMap[eventType] || 'unknownAction';
+}
+
+function getEventTypeDisplay(eventType) {
+    const typeMap = {
+        'NewSub': 'New Subscription',
+        'Resub': 'Resubscription',
+        'GiftSub': 'Gifted Sub',
+        'SubBomb': 'Sub Bomb',
+        'Cheer': 'Cheer / Bits'
+    };
+    return typeMap[eventType] || eventType;
+}
+
+async function showConfigModal(eventType, event) {
+    log(`showConfigModal called: ${eventType}`);
+    State.currentConfigType = eventType;
+    State.currentConfigEvent = event;
+
+    // Ensure actions are loaded
+    if (State.availableActions.length === 0) {
+        log('Loading actions...');
+        await loadActions();
+    }
+
+    log(`Available actions: ${State.availableActions.length}`);
+
+    // Filter out system/helper actions from the dropdown
+    const systemActions = [
+        'SaveCelebrationConfig',
+        'CelebrationManager',
+        'CelebrationAlert',  // Old action, kept for compatibility
+        'StoreEvent',
+        'SkipCelebration',   // Old action, kept for compatibility
+        'SortCelebrations',  // Old action, kept for compatibility
+        'HandleSingleGift',
+        'TestConfigEvent'
+    ];
+
+    const celebrationActions = State.availableActions.filter(action => 
+        !systemActions.includes(action.name)
+    );
+
+    // Populate dropdown with filtered actions
+    DOM.modal.select.innerHTML = '<option value="">-- Select Action --</option>';
+    celebrationActions.forEach(action => {
+        const option = document.createElement('option');
+        option.value = action.name;
+        option.textContent = action.name;
+        DOM.modal.select.appendChild(option);
+    });
+
+    log(`Filtered to ${celebrationActions.length} celebration actions`);
+
+    // Update modal content
+    DOM.modal.eventType.textContent = getEventTypeDisplay(eventType);
+    DOM.modal.message.textContent = `No action configured for ${getEventTypeDisplay(eventType)}. Please select an action:`;
+
+    log('Showing modal...');
+    // Show modal
+    DOM.modal.overlay.classList.add('visible');
+    log('Modal visible class added');
+}
+
+/* =========================================================
+   CONTROL BAR
+========================================================= */
+function buildControlBar() {
+
+    const bar = document.createElement("div");
+    bar.className = "control-bar";
+
+    const filterSelect = document.createElement("select");
+    filterSelect.title = "Filter events by type";
+
+    ["All", "Sub", "Cheer", "SubBomb"].forEach(type => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.text = type === "All" ? "🎯 All" : 
+                      type === "Sub" ? "💜 Subs" :
+                      type === "Cheer" ? "💎 Bits" :
+                      "🎁 Bombs";
+        filterSelect.appendChild(option);
+    });
+
+    filterSelect.onchange = (e) => {
+        State.filter = e.target.value;
+        render();
+    };
+
+    bar.appendChild(filterSelect);
+
+    const sortBtn = document.createElement("button");
+    sortBtn.innerHTML = "SORT BY ⏰";
+    sortBtn.title = "Sort events chronologically";
+    sortBtn.onclick = triggerServerSort;
+
+    bar.appendChild(sortBtn);
+
+    const setupBtn = document.createElement("button");
+    setupBtn.innerHTML = "⚙️ SETUP";
+    setupBtn.title = "Configure all celebration actions";
+    setupBtn.onclick = showSetupModal;
+    setupBtn.style.fontSize = "0.55rem";
+    bar.appendChild(setupBtn);
+
+    DOM.header.appendChild(bar);
+}
+
+/* =========================================================
+   STREAMER.BOT CONNECTION
+========================================================= */
+function initializeStreamerbotClient() {
+
+    State.client = new StreamerbotClient({
+        host: '127.0.0.1',
+        port: 8080,
+        immediate: true,
+        storage: null,
+        onConnect: handleConnection,
+        subscribe: {
+            'Misc': ['GlobalVariableUpdated'],
+            'Custom': ['Event']
+        }
+    });
+
+    State.client.on('Misc.GlobalVariableUpdated', ({ data }) => {
+        if (data.name === 'pendingCelebrations')
+            processRawData(data.newValue);
+    });
+
+    // Listen for Custom.Event and check if it's our CelebrationConfigNeeded
+    State.client.on('Custom.Event', (event) => {
+        if (event.data?.eventName === 'CelebrationConfigNeeded') {
+            log(`CelebrationConfigNeeded event detected`);
+            handleConfigNeeded(event);
+        }
+    });
+}
+
+function handleConfigNeeded(event) {
+    // The args are in event.data.args
+    const args = event.data?.args || {};
+    
+    log(`handleConfigNeeded - eventType: ${args.eventType}, eventId: ${args.eventId}`);
+    
+    const eventId = args.eventId;
+    const eventType = args.eventType;
+    
+    if (eventId && eventType) {
+        log(`Config needed for ${eventType}, event ID: ${eventId}`);
+        const pendingEvent = State.pendingEvents.find(e => e.Id === eventId);
+        if (pendingEvent) {
+            showConfigModal(eventType, pendingEvent);
+        } else {
+            log(`Event not found in pending list: ${eventId}`);
+            // Still show modal but without retry capability
+            showConfigModal(eventType, { Id: eventId, User: args.user, Detail: args.detail });
+        }
+    } else {
+        log(`Missing eventId or eventType in args`);
+    }
+}
+
+function handleConnection() {
+    DOM.stats.innerText = "Connected";
+    fetchEvents();
+    loadActions();
+}
+
+async function fetchEvents() {
+    const response = await State.client.getGlobal("pendingCelebrations", true);
+    processRawData(response?.variable?.value || "[]");
+}
+
+function processRawData(raw) {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    State.pendingEvents = parsed || [];
+    render();
+}
+
+/* =========================================================
+   RENDERING
+========================================================= */
+function render() {
+    DOM.stats.innerText = `${State.pendingEvents.length} Pending Alerts`;
+
+    const filtered = State.filter === "All"
+        ? State.pendingEvents
+        : State.pendingEvents.filter(e => e.Type === State.filter);
+
+    if (!filtered.length) {
+        DOM.container.innerHTML =
+            '<p style="text-align:center; opacity:0.3; margin-top:20px; font-size:0.8rem;">All caught up! 🦙</p>';
+        return;
+    }
+
+    DOM.container.innerHTML = '';
+
+    filtered.forEach(event => {
+        const card = createCard(event);
+        DOM.container.appendChild(card);
+    });
+
+    // Add bottom drop zone
+    const dropZone = document.createElement('div');
+    dropZone.id = 'drop-zone-bottom';
+    dropZone.innerHTML = 'Drop here to move to bottom';
+    attachBottomDropZoneHandlers(dropZone);
+    DOM.container.appendChild(dropZone);
+}
+
+function createCard(event) {
+
+    const card = document.createElement("div");
+    card.className = `card ${event.Type || "Event"}`;
+    card.dataset.id = event.Id;
+
+    if (event.Id === State.activeId)
+        card.style.border = "2px solid cyan";
+
+    card.innerHTML = `
+        <span class="drag-handle" draggable="true">⋮⋮</span>
+        <span class="time">${event.Timestamp}</span>
+        <span class="user" style="margin-left: 24px;">${event.User}</span>
+        <span class="detail" style="margin-left: 24px;">${event.Detail}</span>
+        <button class="skip-btn">Skip</button>
+    `;
+
+    attachHandlers(card, event);
+    attachDragHandlers(card);
+    return card;
+}
+
+/* =========================================================
+   BOTTOM DROP ZONE HANDLERS
+========================================================= */
+function attachBottomDropZoneHandlers(dropZone) {
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+
+        if (!State.draggedId) return;
+
+        // Get the last card in the filtered list
+        const cards = Array.from(document.querySelectorAll('.card'));
+        const lastCard = cards[cards.length - 1];
+        
+        if (!lastCard || State.draggedId === lastCard.dataset.id) {
+            return; // Already at bottom
+        }
+
+        const targetId = lastCard.dataset.id;
+        
+        log(`Drop to bottom: ${State.draggedId} → after ${targetId}`);
+
+        try {
+            await State.client.doAction(
+                { name: "CelebrationManager" },
+                {
+                    operation: "sort",
+                    draggedId: State.draggedId,
+                    targetId: targetId,
+                    insertAfter: true
+                }
+            );
+            log('Reorder complete');
+        } catch (err) {
+            log(`Error: ${err.message}`);
+        }
+    });
+}
+
+/* =========================================================
+   CELEBRATION
+========================================================= */
+function attachHandlers(card, event) {
+
+    const skipBtn = card.querySelector(".skip-btn");
+
+    // Only trigger celebration when clicking on the card content (not drag handle or skip)
+    card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('skip-btn') || 
+            e.target.classList.contains('drag-handle')) {
+            return;
+        }
+        handleCelebration(card, event);
+    });
+
+    skipBtn.onclick = (e) => handleSkip(e, event);
+}
+
+/* =========================================================
+   DRAG & DROP HANDLERS
+========================================================= */
+function attachDragHandlers(card) {
+
+    const dragHandle = card.querySelector('.drag-handle');
+
+    dragHandle.addEventListener('dragstart', (e) => {
+        State.draggedElement = card;
+        State.draggedId = card.dataset.id;
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        
+        // Show bottom drop zone
+        const dropZone = document.getElementById('drop-zone-bottom');
+        if (dropZone) dropZone.classList.add('visible');
+        
+        log(`Dragging: ${State.draggedId}`);
+    });
+
+    dragHandle.addEventListener('dragend', (e) => {
+        card.classList.remove('dragging');
+        State.draggedElement = null;
+        
+        // Remove drag-over class from all cards and hide drop zone
+        document.querySelectorAll('.card').forEach(c => {
+            c.classList.remove('drag-over');
+        });
+        
+        const dropZone = document.getElementById('drop-zone-bottom');
+        if (dropZone) {
+            dropZone.classList.remove('visible', 'drag-over');
+        }
+    });
+
+    card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        if (State.draggedElement && State.draggedElement !== card) {
+            card.classList.add('drag-over');
+        }
+    });
+
+    card.addEventListener('dragleave', (e) => {
+        card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+
+        if (!State.draggedId || State.draggedId === card.dataset.id) {
+            return;
+        }
+
+        const targetId = card.dataset.id;
+        
+        log(`Drop: ${State.draggedId} → ${targetId}`);
+
+        try {
+            await State.client.doAction(
+                { name: "CelebrationManager" },
+                {
+                    operation: "sort",
+                    draggedId: State.draggedId,
+                    targetId: targetId
+                }
+            );
+            log('Reorder complete');
+        } catch (err) {
+            log(`Error: ${err.message}`);
+        }
+    });
+}
+
+function handleCelebration(card, event) {
+
+    State.activeId = event.Id;
+    
+    card.classList.add("initiating", "initiating-pulse");
+    const detailSpan = card.querySelector(".detail");
+    if (detailSpan) {
+        detailSpan.innerText = "✨ INITIATING CELEBRATION...";
+    }
+
+    setTimeout(async () => {
+        try {
+            await State.client.doAction(
+                { name: "CelebrationManager" },
+                { 
+                    operation: "alert",
+                    eventId: event.Id 
+                }
+            );
+        } finally {
+            State.activeId = null;
+        }
+    }, 1500);
+}
+
+/* =========================================================
+   SKIP
+========================================================= */
+async function handleSkip(e, event) {
+
+    e.stopPropagation();
+
+    if (!confirm(`Skip ${event.User}'s ${event.Type}?`)) return;
+
+    await State.client.doAction(
+        { name: "CelebrationManager" },
+        { 
+            operation: "skip",
+            eventId: event.Id 
+        }
+    );
+}
+
+/* =========================================================
+   SERVER SORT
+========================================================= */
+async function triggerServerSort() {
+    await State.client.doAction(
+        { name: "CelebrationManager" },
+        { operation: "sort" }
+    );
+}
+
+/* =========================================================
+   START
+========================================================= */
+initApp();
+
+</script>
+
+
+</body>
+</html>
