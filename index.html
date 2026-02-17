@@ -6,20 +6,53 @@
     <script src="https://cdn.jsdelivr.net/npm/@streamerbot/client/dist/streamerbot-client.js"></script>
     <style>
         :root {
-            --pink: #ff69b4;
-            --purple: #9370db;
-            --yellow: #ffff00;
-            --cyan: #00ffff;
+            --accent: #ff69b4;
+            --sub: #9370db;
+            --sub-bomb: #ffff00;
+            --cheer: #00ffff;
             --bg: #0d0d12;
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #bbbbbb;
+            --text-muted: #777777;
+            --debug-text: #5c5c66;
+            --debug-border: #2a2a33;
+            --drop-zone-border: rgba(255, 255, 255, 0.1);
+            --drop-zone-text: rgba(255, 255, 255, 0.3);
+            --drop-zone-active-bg: rgba(0, 255, 255, 0.05);
+            --card-hover-bg: rgba(255, 255, 255, 0.08);
+            --drag-preview-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            --sub-bomb-glow: rgba(255, 255, 0, 0.3);
+            --cheer-glow: rgba(0, 255, 255, 0.3);
+            --cheer-soft-bg: rgba(0, 255, 255, 0.1);
+            --overlay-bg: rgba(0, 0, 0, 0.85);
+            --modal-bg-start: rgba(13, 13, 18, 0.95);
+            --modal-bg-end: rgba(20, 20, 30, 0.95);
+            --modal-glow: rgba(147, 112, 219, 0.5);
+            --panel-bg: rgba(255, 255, 255, 0.02);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(147, 112, 219, 0.4);
+            --button-bg-start: rgba(147, 112, 219, 0.2);
+            --button-bg-end: rgba(255, 105, 180, 0.2);
+            --button-hover-start: rgba(147, 112, 219, 0.3);
+            --button-hover-end: rgba(255, 105, 180, 0.3);
+            --button-glow: rgba(147, 112, 219, 0.4);
+            --focus-glow: rgba(255, 105, 180, 0.5);
+            --tab-active-start: rgba(147, 112, 219, 0.35);
+            --tab-active-end: rgba(255, 105, 180, 0.35);
+            --tab-active-glow: rgba(255, 105, 180, 0.25);
+            --text-inverse: #ffffff;
+            --skip-btn-bg: #ff3b3b;
+            --skip-btn-hover-bg: #ff0000;
             --card-padding: 10px;
+            --color-scheme: dark;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
-            color: white;
+            color: var(--text-primary);
             margin: 0;
             padding: 12px;
             overflow-x: hidden;
@@ -40,15 +73,51 @@
         h1 {
             font-size: 0.9rem;
             letter-spacing: 2px;
-            color: var(--pink);
+            color: var(--accent);
             margin: 0;
             text-transform: uppercase;
         }
 
         #stats {
             font-size: 0.7rem;
-            color: #777;
+            color: var(--text-muted);
             margin-top: 2px;
+        }
+
+        #streamerbot-connection-alert {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            background: var(--panel-bg);
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        #streamerbot-connection-alert.visible {
+            display: block;
+        }
+
+        #streamerbot-connection-alert .title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #streamerbot-connection-alert .details {
+            margin-top: 4px;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        #streamerbot-connection-alert .details a {
+            color: var(--cheer);
+            font-weight: 700;
+            text-decoration: underline;
         }
 
         #container {
@@ -61,12 +130,12 @@
 
         #drop-zone-bottom {
             height: 40px;
-            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border: 2px dashed var(--drop-zone-border);
             border-radius: 4px;
             display: none;
             align-items: center;
             justify-content: center;
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--drop-zone-text);
             font-size: 0.7rem;
             margin-top: 4px;
             transition: all 0.2s;
@@ -77,15 +146,15 @@
         }
 
         #drop-zone-bottom.drag-over {
-            border-color: var(--cyan);
-            background: rgba(0, 255, 255, 0.05);
-            color: var(--cyan);
+            border-color: var(--cheer);
+            background: var(--drop-zone-active-bg);
+            color: var(--cheer);
         }
 
         .card {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-left: 4px solid var(--purple);
+            border-left: 4px solid var(--sub);
             padding: var(--card-padding);
             border-radius: 4px;
             cursor: pointer;
@@ -95,7 +164,7 @@
 
         .card:hover {
             transform: translateX(4px);
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--card-hover-bg);
         }
 
         .card.dragging {
@@ -104,53 +173,53 @@
         }
 
         .card.drag-over {
-            border-top: 3px solid var(--cyan);
+            border-top: 3px solid var(--cheer);
             transform: translateY(2px);
         }
 
         .drag-preview {
             opacity: 0.95;
             transform: rotate(1deg);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            box-shadow: var(--drag-preview-shadow);
         }
 
         /* Color Coding */
         .card.SubBomb { 
-            border-left-color: var(--yellow); 
-            box-shadow: inset 5px 0 10px -5px rgba(255, 255, 0, 0.3);
+            border-left-color: var(--sub-bomb); 
+            box-shadow: inset 5px 0 10px -5px var(--sub-bomb-glow);
         }
 
         .card.Cheer { 
-            border-left-color: var(--cyan); 
-            box-shadow: inset 5px 0 10px -5px rgba(0, 255, 255, 0.3);
+            border-left-color: var(--cheer); 
+            box-shadow: inset 5px 0 10px -5px var(--cheer-glow);
         }
 
         .card.Sub { 
-            border-left-color: var(--purple); 
+            border-left-color: var(--sub); 
         }
 
         .user {
             font-weight: 800;
-            color: #fff;
+            color: var(--text-primary);
             display: block;
             font-size: 1rem;
             margin-bottom: 2px;
         }
 
         .detail {
-            color: #bbb;
+            color: var(--text-secondary);
             font-size: 0.8rem;
         }
 
         .time {
             font-size: 0.6rem;
-            color: var(--pink);
+            color: var(--accent);
             float: right;
         }
 
         .active-celebration {
             animation: pulse 0.8s infinite ease-in-out;
-            border-color: var(--cyan);
+            border-color: var(--cheer);
             pointer-events: none;
         }
 
@@ -161,22 +230,22 @@
 
         #debug-log {
             font-size: 0.6rem;
-            color: #333;
+            color: var(--debug-text);
             margin-top: 20px;
-            border-top: 1px dashed #222;
+            border-top: 1px dashed var(--debug-border);
             padding-top: 10px;
             font-family: monospace;
         }
 
         /* New state for when the card is clicked */
         .card.initiating {
-            border-color: var(--cyan) !important;
-            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--cheer) !important;
+            background: var(--cheer-soft-bg);
             pointer-events: none;
         }
 
         .card.initiating .detail {
-            color: var(--cyan);
+            color: var(--cheer);
             font-weight: bold;
             letter-spacing: 1px;
         }
@@ -196,9 +265,9 @@
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: #ff3b3b;
+            background: var(--skip-btn-bg);
             border: none;
-            color: white;
+            color: var(--text-primary);
             font-size: 0.7rem;
             padding: 4px 8px;
             border-radius: 3px;
@@ -213,7 +282,7 @@
         }
 
         .skip-btn:hover {
-            background: #ff0000;
+            background: var(--skip-btn-hover-bg);
         }
 
         .drag-handle {
@@ -221,7 +290,7 @@
             left: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--drop-zone-text);
             font-size: 1rem;
             cursor: grab;
             user-select: none;
@@ -231,7 +300,7 @@
 
         .card:hover .drag-handle {
             opacity: 1;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
         }
 
         .drag-handle:active {
@@ -245,7 +314,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: var(--overlay-bg);
             backdrop-filter: blur(5px);
             display: none;
             align-items: center;
@@ -258,19 +327,19 @@
         }
 
         .modal {
-            background: linear-gradient(135deg, rgba(13, 13, 18, 0.95), rgba(20, 20, 30, 0.95));
-            border: 2px solid var(--purple);
+            background: linear-gradient(135deg, var(--modal-bg-start), var(--modal-bg-end));
+            border: 2px solid var(--sub);
             border-radius: 8px;
             padding: 20px;
             max-width: 280px;
             width: 90%;
-            box-shadow: 0 0 30px rgba(147, 112, 219, 0.5);
+            box-shadow: 0 0 30px var(--modal-glow);
         }
 
         .modal h2 {
             margin: 0 0 12px 0;
             font-size: 0.9rem;
-            color: var(--pink);
+            color: var(--accent);
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -278,7 +347,7 @@
 
         .modal p {
             font-size: 0.75rem;
-            color: #bbb;
+            color: var(--text-secondary);
             margin: 0 0 15px 0;
             text-align: center;
             line-height: 1.4;
@@ -287,7 +356,7 @@
         .modal label {
             display: block;
             font-size: 0.65rem;
-            color: var(--cyan);
+            color: var(--cheer);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -295,10 +364,10 @@
 
         .modal select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.7rem;
             padding: 8px;
             border-radius: 4px;
@@ -308,13 +377,13 @@
 
         .modal select:focus {
             outline: none;
-            border-color: var(--pink);
-            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--focus-glow);
         }
 
         .modal select option {
             background: var(--bg);
-            color: white;
+            color: var(--text-primary);
         }
 
         .modal-buttons {
@@ -331,9 +400,9 @@
 
         .setup-tab {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: #cfcfcf;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
             font-size: 0.62rem;
             padding: 8px;
             border-radius: 4px;
@@ -344,10 +413,10 @@
         }
 
         .setup-tab.active {
-            color: white;
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.35), rgba(255, 105, 180, 0.35));
-            border-color: var(--pink);
-            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25);
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--tab-active-start), var(--tab-active-end));
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--tab-active-glow);
         }
 
         .setup-panel {
@@ -369,7 +438,7 @@
         .visual-setting label {
             display: block;
             font-size: 0.65rem;
-            color: var(--cyan);
+            color: var(--cheer);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -377,10 +446,10 @@
 
         .visual-setting select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.7rem;
             padding: 8px;
             border-radius: 4px;
@@ -388,9 +457,9 @@
         }
 
         .modal button {
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.2), rgba(255, 105, 180, 0.2));
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
+            background: linear-gradient(135deg, var(--button-bg-start), var(--button-bg-end));
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
             font-size: 0.65rem;
             padding: 8px 16px;
             border-radius: 4px;
@@ -402,24 +471,24 @@
         }
 
         .modal button:hover {
-            border-color: var(--purple);
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
-            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+            border-color: var(--sub);
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
+            box-shadow: 0 0 15px var(--button-glow);
         }
 
         .modal button.primary {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            border-color: var(--pink);
+            background: linear-gradient(135deg, var(--sub), var(--accent));
+            border-color: var(--accent);
         }
 
         .modal button.primary:hover {
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+            box-shadow: 0 0 20px var(--focus-glow);
             transform: translateY(-1px);
         }
 
         .event-type-badge {
             display: inline-block;
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
             padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.7rem;
@@ -435,7 +504,7 @@
             gap: 6px;
             margin-top: 10px;
             padding: 6px;
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--panel-bg);
             border-radius: 6px;
             border: 1px solid var(--glass-border);
             position: relative;
@@ -444,10 +513,10 @@
 
         .control-bar select,
         .control-bar button {
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.15), rgba(255, 105, 180, 0.15));
-            border: 1px solid rgba(147, 112, 219, 0.4);
-            color: white;
-            color-scheme: dark;
+            background: linear-gradient(135deg, var(--button-bg-start), var(--button-bg-end));
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            color-scheme: var(--color-scheme);
             font-size: 0.6rem;
             padding: 5px 8px;
             border-radius: 4px;
@@ -471,36 +540,36 @@
 
         .control-bar select:hover,
         .control-bar button:hover {
-            border-color: var(--purple);
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.25), rgba(255, 105, 180, 0.25));
-            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+            border-color: var(--sub);
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
+            box-shadow: 0 0 15px var(--button-glow);
             transform: translateY(-1px);
         }
 
         .control-bar select:focus,
         .control-bar button:focus {
             outline: none;
-            border-color: var(--pink);
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--focus-glow);
         }
 
         .control-bar button:active {
             transform: translateY(0);
-            box-shadow: 0 0 10px rgba(147, 112, 219, 0.3);
+            box-shadow: 0 0 10px var(--button-glow);
         }
 
         .control-bar select option,
         .modal select option,
         #setup-fields select option {
             background: var(--bg);
-            color: white;
+            color: var(--text-primary);
         }
 
         /* Neon glow effect for active states */
         .control-bar select:hover option,
         .control-bar select option:checked {
             background: var(--bg);
-            color: var(--pink);
+            color: var(--accent);
         }
     </style>
 </head>
@@ -508,6 +577,13 @@
     <div id="header">
         <h1>CATCH-UP</h1>
         <div id="stats">Connecting...</div>
+        <div id="streamerbot-connection-alert" role="status" aria-live="polite">
+            <div class="title">Streamerbot Disconnected</div>
+            <div class="details">
+                Make sure Streamerbot is running on your computer and the websocket server is enabled.
+                <a href="https://docs.streamer.bot/api/websocket/guide/configuration" target="_blank" rel="noopener noreferrer">Click here</a>
+            </div>
+        </div>
     </div>
     
     <div id="container"></div>
@@ -558,6 +634,8 @@
                         <option value="neon">Neon (Default)</option>
                         <option value="ocean">Ocean</option>
                         <option value="sunset">Sunset</option>
+                        <option value="daylight">Daylight</option>
+                        <option value="paper">Paper</option>
                     </select>
                 </div>
 
@@ -599,6 +677,7 @@
 const DOM = {
     container: document.getElementById('container'),
     stats: document.getElementById('stats'),
+    connectionAlert: document.getElementById('streamerbot-connection-alert'),
     debug: document.getElementById('debug-log'),
     header: document.getElementById('header'),
     modal: {
@@ -628,6 +707,8 @@ const DOM = {
 
 const State = {
     client: null,
+    isConnected: false,
+    connectionWarningTimer: null,
     pendingEvents: [],
     filter: "All",
     activeId: null,
@@ -647,31 +728,89 @@ const State = {
 
 const VISUAL_THEMES = {
     neon: {
-        pink: '#ff69b4',
-        purple: '#9370db',
-        yellow: '#ffff00',
-        cyan: '#00ffff',
+        accent: '#ff69b4',
+        sub: '#9370db',
+        subBomb: '#ffff00',
+        cheer: '#00ffff',
         bg: '#0d0d12',
         glass: 'rgba(255, 255, 255, 0.05)',
-        glassBorder: 'rgba(255, 255, 255, 0.1)'
+        glassBorder: 'rgba(255, 255, 255, 0.1)',
+        textPrimary: '#ffffff',
+        textSecondary: '#bbbbbb',
+        textMuted: '#777777',
+        panelBg: 'rgba(255, 255, 255, 0.02)',
+        inputBg: 'rgba(255, 255, 255, 0.05)',
+        inputBorder: 'rgba(147, 112, 219, 0.4)',
+        overlayBg: 'rgba(0, 0, 0, 0.85)',
+        colorScheme: 'dark'
     },
     ocean: {
-        pink: '#54b4ff',
-        purple: '#4f6cf0',
-        yellow: '#9bf6ff',
-        cyan: '#00d8ff',
+        accent: '#54b4ff',
+        sub: '#4f6cf0',
+        subBomb: '#9bf6ff',
+        cheer: '#00d8ff',
         bg: '#091522',
         glass: 'rgba(75, 130, 180, 0.16)',
-        glassBorder: 'rgba(125, 200, 255, 0.25)'
+        glassBorder: 'rgba(125, 200, 255, 0.25)',
+        textPrimary: '#eef8ff',
+        textSecondary: '#bed7eb',
+        textMuted: '#7fa2bf',
+        panelBg: 'rgba(138, 187, 224, 0.15)',
+        inputBg: 'rgba(129, 181, 219, 0.2)',
+        inputBorder: 'rgba(125, 200, 255, 0.45)',
+        overlayBg: 'rgba(2, 18, 34, 0.82)',
+        colorScheme: 'dark'
     },
     sunset: {
-        pink: '#ff8a5b',
-        purple: '#ff477e',
-        yellow: '#ffd166',
-        cyan: '#ffadad',
+        accent: '#ff8a5b',
+        sub: '#ff477e',
+        subBomb: '#ffd166',
+        cheer: '#ffadad',
         bg: '#1a0f14',
         glass: 'rgba(255, 166, 128, 0.14)',
-        glassBorder: 'rgba(255, 201, 158, 0.22)'
+        glassBorder: 'rgba(255, 201, 158, 0.22)',
+        textPrimary: '#fff4ee',
+        textSecondary: '#f3cab8',
+        textMuted: '#c48e79',
+        panelBg: 'rgba(255, 166, 128, 0.09)',
+        inputBg: 'rgba(255, 166, 128, 0.14)',
+        inputBorder: 'rgba(255, 201, 158, 0.38)',
+        overlayBg: 'rgba(28, 12, 16, 0.8)',
+        colorScheme: 'dark'
+    },
+    daylight: {
+        accent: '#da4d9a',
+        sub: '#6f5be8',
+        subBomb: '#d1a600',
+        cheer: '#008eb5',
+        bg: '#f5f8ff',
+        glass: 'rgba(255, 255, 255, 0.85)',
+        glassBorder: 'rgba(98, 121, 173, 0.25)',
+        textPrimary: '#1f2a40',
+        textSecondary: '#44506d',
+        textMuted: '#687491',
+        panelBg: 'rgba(227, 234, 247, 0.85)',
+        inputBg: 'rgba(255, 255, 255, 0.95)',
+        inputBorder: 'rgba(111, 91, 232, 0.35)',
+        overlayBg: 'rgba(215, 225, 245, 0.78)',
+        colorScheme: 'light'
+    },
+    paper: {
+        accent: '#bd3a7e',
+        sub: '#7254cf',
+        subBomb: '#9b8400',
+        cheer: '#0f8aa8',
+        bg: '#fdf8f2',
+        glass: 'rgba(255, 255, 255, 0.9)',
+        glassBorder: 'rgba(145, 117, 90, 0.2)',
+        textPrimary: '#2d261f',
+        textSecondary: '#5d5143',
+        textMuted: '#827462',
+        panelBg: 'rgba(245, 235, 224, 0.82)',
+        inputBg: 'rgba(255, 255, 255, 0.92)',
+        inputBorder: 'rgba(114, 84, 207, 0.3)',
+        overlayBg: 'rgba(236, 225, 213, 0.76)',
+        colorScheme: 'light'
     }
 };
 
@@ -733,7 +872,6 @@ function initApp() {
     buildControlBar();
     initializeStreamerbotClient();
     setupModal();
-    loadVisualSettings();
     applyVisualSettings();
 }
 
@@ -855,39 +993,76 @@ function setupModal() {
         DOM.setup.overlay.classList.remove('visible');
     };
 
-    DOM.setup.saveVisuals.onclick = () => {
+    DOM.setup.saveVisuals.onclick = async () => {
         State.visualSettings = {
             theme: DOM.setup.theme.value,
             textSize: DOM.setup.textSize.value,
             density: DOM.setup.density.value
         };
 
-        applyVisualSettings();
-        persistVisualSettings();
-        DOM.setup.overlay.classList.remove('visible');
-        log('Visual settings saved');
+        try {
+            await persistVisualSettings();
+            applyVisualSettings();
+            DOM.setup.overlay.classList.remove('visible');
+            log('Visual settings saved');
+        } catch (err) {
+            log(`Failed to save visual settings: ${err.message}`);
+        }
     };
 
 }
 
-function loadVisualSettings() {
-    try {
-        const raw = localStorage.getItem('catchupVisualSettings');
-        if (!raw) return;
-
-        const saved = JSON.parse(raw);
-        State.visualSettings = {
-            theme: saved.theme || State.visualSettings.theme,
-            textSize: saved.textSize || State.visualSettings.textSize,
-            density: saved.density || State.visualSettings.density
-        };
-    } catch (err) {
-        log(`Failed to load visual settings: ${err.message}`);
-    }
+function normalizeVisualSettings(settings) {
+    return {
+        theme: VISUAL_THEMES[settings.theme] ? settings.theme : 'neon',
+        textSize: TEXT_SIZE_MAP[settings.textSize] ? settings.textSize : 'normal',
+        density: CARD_DENSITY_MAP[settings.density] ? settings.density : 'comfortable'
+    };
 }
 
-function persistVisualSettings() {
-    localStorage.setItem('catchupVisualSettings', JSON.stringify(State.visualSettings));
+async function loadVisualSettings() {
+    if (!State.client) return;
+
+    const fallback = normalizeVisualSettings(State.visualSettings);
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'ensure',
+            theme: fallback.theme,
+            textSize: fallback.textSize,
+            density: fallback.density
+        }
+    );
+
+    const [themeResponse, textSizeResponse, densityResponse] = await Promise.all([
+        State.client.getGlobal('catchupVisualTheme', true),
+        State.client.getGlobal('catchupVisualTextSize', true),
+        State.client.getGlobal('catchupVisualDensity', true)
+    ]);
+
+    State.visualSettings = normalizeVisualSettings({
+        theme: themeResponse?.variable?.value || fallback.theme,
+        textSize: textSizeResponse?.variable?.value || fallback.textSize,
+        density: densityResponse?.variable?.value || fallback.density
+    });
+}
+
+async function persistVisualSettings() {
+    const sanitized = normalizeVisualSettings(State.visualSettings);
+    State.visualSettings = sanitized;
+
+    await State.client.doAction(
+        { name: "SaveCelebrationConfig" },
+        {
+            operation: 'visuals',
+            mode: 'save',
+            theme: sanitized.theme,
+            textSize: sanitized.textSize,
+            density: sanitized.density
+        }
+    );
 }
 
 function applyVisualSettings() {
@@ -896,13 +1071,48 @@ function applyVisualSettings() {
     const textSize = TEXT_SIZE_MAP[State.visualSettings.textSize] || TEXT_SIZE_MAP.normal;
     const cardPadding = CARD_DENSITY_MAP[State.visualSettings.density] || CARD_DENSITY_MAP.comfortable;
 
-    root.style.setProperty('--pink', theme.pink);
-    root.style.setProperty('--purple', theme.purple);
-    root.style.setProperty('--yellow', theme.yellow);
-    root.style.setProperty('--cyan', theme.cyan);
+    root.style.setProperty('--accent', theme.accent);
+    root.style.setProperty('--sub', theme.sub);
+    root.style.setProperty('--sub-bomb', theme.subBomb);
+    root.style.setProperty('--cheer', theme.cheer);
     root.style.setProperty('--bg', theme.bg);
     root.style.setProperty('--glass', theme.glass);
     root.style.setProperty('--glass-border', theme.glassBorder);
+    root.style.setProperty('--text-primary', theme.textPrimary || '#ffffff');
+    root.style.setProperty('--text-secondary', theme.textSecondary || '#bbbbbb');
+    root.style.setProperty('--text-muted', theme.textMuted || '#777777');
+    root.style.setProperty('--panel-bg', theme.panelBg || 'rgba(255, 255, 255, 0.02)');
+    root.style.setProperty('--input-bg', theme.inputBg || 'rgba(255, 255, 255, 0.05)');
+    root.style.setProperty('--input-border', theme.inputBorder || 'rgba(147, 112, 219, 0.4)');
+    root.style.setProperty('--overlay-bg', theme.overlayBg || 'rgba(0, 0, 0, 0.85)');
+    root.style.setProperty('--color-scheme', theme.colorScheme || 'dark');
+
+    const isLightTheme = (theme.colorScheme || 'dark') === 'light';
+    root.style.setProperty('--debug-text', isLightTheme ? '#6e778d' : '#5c5c66');
+    root.style.setProperty('--debug-border', isLightTheme ? '#b6bfd4' : '#2a2a33');
+    root.style.setProperty('--drop-zone-border', isLightTheme ? 'rgba(89, 104, 136, 0.35)' : 'rgba(255, 255, 255, 0.1)');
+    root.style.setProperty('--drop-zone-text', isLightTheme ? 'rgba(68, 80, 109, 0.7)' : 'rgba(255, 255, 255, 0.3)');
+    root.style.setProperty('--drop-zone-active-bg', isLightTheme ? 'rgba(0, 142, 181, 0.12)' : 'rgba(0, 255, 255, 0.05)');
+    root.style.setProperty('--card-hover-bg', isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.08)');
+    root.style.setProperty('--drag-preview-shadow', isLightTheme
+        ? '0 10px 24px rgba(31, 42, 64, 0.2), 0 0 0 1px rgba(98, 121, 173, 0.28) inset'
+        : '0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12) inset');
+    root.style.setProperty('--sub-bomb-glow', isLightTheme ? 'rgba(209, 166, 0, 0.28)' : 'rgba(255, 255, 0, 0.3)');
+    root.style.setProperty('--cheer-glow', isLightTheme ? 'rgba(0, 142, 181, 0.28)' : 'rgba(0, 255, 255, 0.3)');
+    root.style.setProperty('--cheer-soft-bg', isLightTheme ? 'rgba(0, 142, 181, 0.14)' : 'rgba(0, 255, 255, 0.1)');
+    root.style.setProperty('--modal-bg-start', isLightTheme ? 'rgba(255, 255, 255, 0.97)' : 'rgba(13, 13, 18, 0.95)');
+    root.style.setProperty('--modal-bg-end', isLightTheme ? 'rgba(240, 245, 255, 0.95)' : 'rgba(20, 20, 30, 0.95)');
+    root.style.setProperty('--modal-glow', isLightTheme ? 'rgba(111, 91, 232, 0.25)' : 'rgba(147, 112, 219, 0.5)');
+    root.style.setProperty('--button-bg-start', isLightTheme ? 'rgba(111, 91, 232, 0.16)' : 'rgba(147, 112, 219, 0.2)');
+    root.style.setProperty('--button-bg-end', isLightTheme ? 'rgba(218, 77, 154, 0.16)' : 'rgba(255, 105, 180, 0.2)');
+    root.style.setProperty('--button-hover-start', isLightTheme ? 'rgba(111, 91, 232, 0.24)' : 'rgba(147, 112, 219, 0.3)');
+    root.style.setProperty('--button-hover-end', isLightTheme ? 'rgba(218, 77, 154, 0.24)' : 'rgba(255, 105, 180, 0.3)');
+    root.style.setProperty('--button-glow', isLightTheme ? 'rgba(111, 91, 232, 0.28)' : 'rgba(147, 112, 219, 0.4)');
+    root.style.setProperty('--focus-glow', isLightTheme ? 'rgba(218, 77, 154, 0.35)' : 'rgba(255, 105, 180, 0.5)');
+    root.style.setProperty('--tab-active-start', isLightTheme ? 'rgba(111, 91, 232, 0.22)' : 'rgba(147, 112, 219, 0.35)');
+    root.style.setProperty('--tab-active-end', isLightTheme ? 'rgba(218, 77, 154, 0.22)' : 'rgba(255, 105, 180, 0.35)');
+    root.style.setProperty('--tab-active-glow', isLightTheme ? 'rgba(218, 77, 154, 0.28)' : 'rgba(255, 105, 180, 0.25)');
+
     root.style.setProperty('--card-padding', cardPadding);
     root.style.fontSize = textSize;
 }
@@ -963,7 +1173,7 @@ async function showSetupModal() {
         const label = document.createElement('label');
         label.style.display = 'block';
         label.style.fontSize = '0.65rem';
-        label.style.color = 'var(--cyan)';
+        label.style.color = 'var(--cheer)';
         label.style.marginBottom = '6px';
         label.style.textTransform = 'uppercase';
         label.textContent = `${eventType.icon} ${eventType.label}`;
@@ -971,10 +1181,10 @@ async function showSetupModal() {
         const select = document.createElement('select');
         select.id = `setup-${eventType.type.toLowerCase()}`;
         select.style.width = '100%';
-        select.style.background = 'rgba(255, 255, 255, 0.05)';
-        select.style.border = '1px solid rgba(147, 112, 219, 0.4)';
-        select.style.color = 'white';
-        select.style.colorScheme = 'dark';
+        select.style.background = 'var(--input-bg)';
+        select.style.border = '1px solid var(--input-border)';
+        select.style.color = 'var(--text-primary)';
+        select.style.colorScheme = 'var(--color-scheme)';
         select.style.fontSize = '0.7rem';
         select.style.padding = '8px';
         select.style.borderRadius = '4px';
@@ -999,7 +1209,7 @@ async function showSetupModal() {
         if (currentValue) {
             select.value = currentValue;
             // Highlight that this is already configured
-            label.innerHTML = `${eventType.icon} ${eventType.label} <span style="color: var(--pink); font-size: 0.6rem;">✓ CONFIGURED</span>`;
+            label.innerHTML = `${eventType.icon} ${eventType.label} <span style="color: var(--accent); font-size: 0.6rem;">✓ CONFIGURED</span>`;
         }
         
         field.appendChild(label);
@@ -1143,6 +1353,17 @@ function buildControlBar() {
    STREAMER.BOT CONNECTION
 ========================================================= */
 function initializeStreamerbotClient() {
+    const handleDisconnected = () => {
+        State.isConnected = false;
+        DOM.stats.innerText = "Disconnected";
+        DOM.connectionAlert.classList.add('visible');
+    };
+
+    State.connectionWarningTimer = setTimeout(() => {
+        if (!State.isConnected) {
+            handleDisconnected();
+        }
+    }, 3000);
 
     State.client = new StreamerbotClient({
         host: '127.0.0.1',
@@ -1150,6 +1371,8 @@ function initializeStreamerbotClient() {
         immediate: true,
         storage: null,
         onConnect: handleConnection,
+        onDisconnect: handleDisconnected,
+        onError: handleDisconnected,
         subscribe: {
             'Misc': ['GlobalVariableUpdated'],
             'Custom': ['Event']
@@ -1194,8 +1417,16 @@ function handleConfigNeeded(event) {
     }
 }
 
-function handleConnection() {
+async function handleConnection() {
+    State.isConnected = true;
+    if (State.connectionWarningTimer) {
+        clearTimeout(State.connectionWarningTimer);
+        State.connectionWarningTimer = null;
+    }
+    DOM.connectionAlert.classList.remove('visible');
     DOM.stats.innerText = "Connected";
+    await loadVisualSettings();
+    applyVisualSettings();
     fetchEvents();
     loadActions();
 }
