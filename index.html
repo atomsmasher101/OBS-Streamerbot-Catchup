@@ -1513,7 +1513,7 @@ function attachBottomDropZoneHandlers(dropZone) {
         if (!State.draggedId) return;
 
         // Get the last card in the filtered list
-        const cards = Array.from(document.querySelectorAll('.card'));
+        const cards = Array.from(DOM.container.querySelectorAll('.card'));
         const lastCard = cards[cards.length - 1];
         
         if (!lastCard || State.draggedId === lastCard.dataset.id) {
@@ -1591,7 +1591,7 @@ function attachDragHandlers(card) {
         cleanupDragPreview();
         
         // Remove drag-over class from all cards and hide drop zone
-        document.querySelectorAll('.card').forEach(c => {
+        DOM.container.querySelectorAll('.card').forEach(c => {
             c.classList.remove('drag-over');
         });
         
