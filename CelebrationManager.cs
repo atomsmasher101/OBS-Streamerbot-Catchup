@@ -10,123 +10,145 @@ public class CPHInline
 {
     public bool Execute()
     {
-        // Determine which operation to perform based on arguments
-        string operation = "alert"; // default
-        
-        if (CPH.TryGetArg("operation", out string op))
-        {
-            operation = op.ToLower();
-        }
-
-        string json = CPH.GetGlobalVar<string>("pendingCelebrations", true) ?? "[]";
-        var list = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
+        var operation = GetOperation();
+        var list = LoadPendingCelebrations();
 
         switch (operation)
         {
             case "alert":
                 return HandleAlert(list);
-            
+
             case "skip":
                 return HandleSkip(list);
-            
+
             case "sort":
                 return HandleSort(list);
-            
+
             default:
                 CPH.LogError($"Unknown operation: {operation}");
                 return false;
         }
     }
 
+    private string GetOperation()
+    {
+        if (TryGetStringArg(new[] { "operation", "op", "mode", "action" }, out string operation))
+            return operation.Trim().ToLowerInvariant();
+
+        return "alert";
+    }
+
+    private List<Dictionary<string, string>> LoadPendingCelebrations()
+    {
+        string json = CPH.GetGlobalVar<string>("pendingCelebrations", true) ?? "[]";
+        var list = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
+
+        return list ?? new List<Dictionary<string, string>>();
+    }
+
     private bool HandleAlert(List<Dictionary<string, string>> list)
     {
-        if (!CPH.TryGetArg("eventId", out string id)) return false;
+        if (!TryGetStringArg(new[] { "eventId", "id", "celebrationId" }, out string id))
+            return false;
 
         var item = list.FirstOrDefault(x => x.ContainsKey("Id") && x["Id"] == id);
-        if (item != null)
+        if (item == null)
+            return true;
+
+        RestoreSavedArgs(item);
+
+        var eventType = ResolveEventType(item);
+        var actionName = ResolveConfiguredAction(eventType);
+
+        if (string.IsNullOrWhiteSpace(actionName))
         {
-            // Restore arguments safely
-            if (item.ContainsKey("RawArgs"))
-            {
-                var savedArgs = JsonConvert.DeserializeObject<Dictionary<string, object>>(item["RawArgs"]);
-                foreach (var arg in savedArgs)
-                {
-                    CPH.SetArgument(arg.Key, arg.Value?.ToString());
-                }
-            }
+            var safeUser = item.ContainsKey("User") ? item["User"] : "Unknown User";
+            var safeDetail = item.ContainsKey("Detail") ? item["Detail"] : "Alert Received";
 
-            string actionName = "";
-            string eventType = "";
-            string type = item["Type"];
+            CPH.SetArgument("eventId", id);
+            CPH.SetArgument("eventType", eventType);
+            CPH.SetArgument("user", safeUser);
+            CPH.SetArgument("detail", safeDetail);
+            CPH.TriggerEvent("CelebrationConfigNeeded", true);
 
-            // Determine which action to run
-            if (type == "Sub")
-            {
-                if (item.ContainsKey("SubType"))
-                {
-                    string subType = item["SubType"];
-                    
-                    if (subType == "NewSub")
-                    {
-                        eventType = "NewSub";
-                        actionName = CPH.GetGlobalVar<string>("newSubAction", true) ?? "";
-                    }
-                    else if (subType == "Resub")
-                    {
-                        eventType = "Resub";
-                        actionName = CPH.GetGlobalVar<string>("resubAction", true) ?? "";
-                    }
-                    else if (subType == "GiftSub")
-                    {
-                        eventType = "GiftSub";
-                        actionName = CPH.GetGlobalVar<string>("giftSubAction", true) ?? "";
-                    }
-                }
-                else
-                {
-                    eventType = "NewSub";
-                    actionName = CPH.GetGlobalVar<string>("newSubAction", true) ?? "";
-                }
-            }
-            else if (type == "SubBomb")
-            {
-                eventType = "SubBomb";
-                actionName = CPH.GetGlobalVar<string>("subBombAction", true) ?? "";
-            }
-            else if (type == "Cheer")
-            {
-                eventType = "Cheer";
-                actionName = CPH.GetGlobalVar<string>("cheerAction", true) ?? "";
-            }
-
-            // Check if action is configured
-            if (string.IsNullOrEmpty(actionName))
-            {
-                CPH.SetArgument("eventId", id);
-                CPH.SetArgument("eventType", eventType);
-                CPH.SetArgument("user", item["User"]);
-                CPH.SetArgument("detail", item["Detail"]);
-                CPH.TriggerEvent("CelebrationConfigNeeded", true);
-                
-                CPH.LogWarn($"No action configured for {eventType}. Waiting for user configuration.");
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(actionName))
-            {
-                CPH.RunAction(actionName);
-            }
-
-            // Remove and Update
-            list.Remove(item);
-            CPH.SetGlobalVar("pendingCelebrations", JsonConvert.SerializeObject(list), true);
+            CPH.LogWarn($"No action configured for {eventType}. Waiting for user configuration.");
+            return false;
         }
+
+        CPH.RunAction(actionName);
+
+        list.Remove(item);
+        CPH.SetGlobalVar("pendingCelebrations", JsonConvert.SerializeObject(list), true);
         return true;
+    }
+
+    private void RestoreSavedArgs(Dictionary<string, string> item)
+    {
+        if (!item.ContainsKey("RawArgs"))
+            return;
+
+        var savedArgs = JsonConvert.DeserializeObject<Dictionary<string, object>>(item["RawArgs"]);
+        if (savedArgs == null)
+            return;
+
+        foreach (var arg in savedArgs)
+        {
+            CPH.SetArgument(arg.Key, arg.Value?.ToString());
+        }
+    }
+
+    private string ResolveEventType(Dictionary<string, string> item)
+    {
+        var type = item.ContainsKey("Type") ? item["Type"] : "Sub";
+        var subType = item.ContainsKey("SubType") ? item["SubType"] : "NewSub";
+
+        if (type == "Sub")
+        {
+            if (subType == "Resub")
+                return "Resub";
+
+            if (subType == "GiftSub")
+                return "GiftSub";
+
+            return "NewSub";
+        }
+
+        if (type == "SubBomb")
+            return "SubBomb";
+
+        if (type == "Cheer")
+            return "Cheer";
+
+        return type;
+    }
+
+    private string ResolveConfiguredAction(string eventType)
+    {
+        var varNamesByType = new Dictionary<string, string[]>
+        {
+            { "NewSub", new[] { "newSubAction", "newsubAction", "NewSubAction" } },
+            { "Resub", new[] { "resubAction", "ReSubAction" } },
+            { "GiftSub", new[] { "giftSubAction", "giftsubAction", "GiftSubAction" } },
+            { "SubBomb", new[] { "subBombAction", "subbombAction", "SubBombAction" } },
+            { "Cheer", new[] { "cheerAction", "CheerAction" } }
+        };
+
+        if (!varNamesByType.ContainsKey(eventType))
+            return string.Empty;
+
+        foreach (var varName in varNamesByType[eventType])
+        {
+            var configured = CPH.GetGlobalVar<string>(varName, true);
+            if (!string.IsNullOrWhiteSpace(configured))
+                return configured;
+        }
+
+        return string.Empty;
     }
 
     private bool HandleSkip(List<Dictionary<string, string>> list)
     {
-        if (!CPH.TryGetArg("eventId", out string id))
+        if (!TryGetStringArg(new[] { "eventId", "id", "celebrationId" }, out string id))
             return false;
 
         var item = list.FirstOrDefault(x => x.ContainsKey("Id") && x["Id"] == id);
@@ -134,7 +156,9 @@ public class CPHInline
         {
             list.Remove(item);
             CPH.SetGlobalVar("pendingCelebrations", JsonConvert.SerializeObject(list), true);
-            CPH.LogInfo($"Skipped celebration for {item["User"]}");
+
+            var safeUser = item.ContainsKey("User") ? item["User"] : "Unknown User";
+            CPH.LogInfo($"Skipped celebration for {safeUser}");
         }
 
         return true;
@@ -142,39 +166,56 @@ public class CPHInline
 
     private bool HandleSort(List<Dictionary<string, string>> list)
     {
-        // Manual Reorder Mode (Drag & Drop)
-        if (CPH.TryGetArg("draggedId", out string draggedId) &&
-            CPH.TryGetArg("targetId", out string targetId))
+        if (TryGetStringArg(new[] { "draggedId", "dragId", "sourceId" }, out string draggedId) &&
+            TryGetStringArg(new[] { "targetId", "dropTargetId", "destinationId" }, out string targetId))
         {
-            var dragged = list.FirstOrDefault(x => x["Id"] == draggedId);
-            var target = list.FirstOrDefault(x => x["Id"] == targetId);
+            var dragged = list.FirstOrDefault(x => x.ContainsKey("Id") && x["Id"] == draggedId);
+            var target = list.FirstOrDefault(x => x.ContainsKey("Id") && x["Id"] == targetId);
 
             if (dragged == null || target == null)
                 return false;
 
             list.Remove(dragged);
             int targetIndex = list.IndexOf(target);
-            
+
             bool insertAfter = CPH.TryGetArg("insertAfter", out bool after) && after;
-            
+
             if (insertAfter)
-            {
                 list.Insert(targetIndex + 1, dragged);
-            }
             else
-            {
                 list.Insert(targetIndex, dragged);
-            }
         }
-        // Chronological Sort Mode
         else
         {
             list = list
-                .OrderBy(x => DateTime.Parse(x["CreatedAt"]))
+                .OrderBy(x => ParseCreatedAt(x))
                 .ToList();
         }
 
         CPH.SetGlobalVar("pendingCelebrations", JsonConvert.SerializeObject(list), true);
         return true;
+    }
+
+    private DateTime ParseCreatedAt(Dictionary<string, string> item)
+    {
+        if (item.ContainsKey("CreatedAt") && DateTime.TryParse(item["CreatedAt"], out DateTime createdAt))
+            return createdAt;
+
+        return DateTime.MinValue;
+    }
+
+    private bool TryGetStringArg(IEnumerable<string> argNames, out string value)
+    {
+        foreach (var name in argNames)
+        {
+            if (CPH.TryGetArg(name, out string found) && !string.IsNullOrWhiteSpace(found))
+            {
+                value = found;
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
     }
 }
