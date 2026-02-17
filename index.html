@@ -84,6 +84,42 @@
             margin-top: 2px;
         }
 
+        #streamerbot-connection-alert {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            background: var(--panel-bg);
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        #streamerbot-connection-alert.visible {
+            display: block;
+        }
+
+        #streamerbot-connection-alert .title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #streamerbot-connection-alert .details {
+            margin-top: 4px;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        #streamerbot-connection-alert .details a {
+            color: var(--cheer);
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
         #container {
             display: flex;
             flex-direction: column;
@@ -111,7 +147,7 @@
 
         #drop-zone-bottom.drag-over {
             border-color: var(--cheer);
-            background: rgba(0, 255, 255, 0.05);
+            background: var(--drop-zone-active-bg);
             color: var(--cheer);
         }
 
@@ -150,12 +186,12 @@
         /* Color Coding */
         .card.SubBomb { 
             border-left-color: var(--sub-bomb); 
-            box-shadow: inset 5px 0 10px -5px rgba(255, 255, 0, 0.3);
+            box-shadow: inset 5px 0 10px -5px var(--sub-bomb-glow);
         }
 
         .card.Cheer { 
             border-left-color: var(--cheer); 
-            box-shadow: inset 5px 0 10px -5px rgba(0, 255, 255, 0.3);
+            box-shadow: inset 5px 0 10px -5px var(--cheer-glow);
         }
 
         .card.Sub { 
@@ -204,7 +240,7 @@
         /* New state for when the card is clicked */
         .card.initiating {
             border-color: var(--cheer) !important;
-            background: rgba(0, 255, 255, 0.1);
+            background: var(--cheer-soft-bg);
             pointer-events: none;
         }
 
@@ -291,7 +327,7 @@
         }
 
         .modal {
-            background: linear-gradient(135deg, rgba(13, 13, 18, 0.95), rgba(20, 20, 30, 0.95));
+            background: linear-gradient(135deg, var(--modal-bg-start), var(--modal-bg-end));
             border: 2px solid var(--sub);
             border-radius: 8px;
             padding: 20px;
@@ -342,7 +378,7 @@
         .modal select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+            box-shadow: 0 0 10px var(--focus-glow);
         }
 
         .modal select option {
@@ -377,10 +413,10 @@
         }
 
         .setup-tab.active {
-            color: white;
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.35), rgba(255, 105, 180, 0.35));
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--tab-active-start), var(--tab-active-end));
             border-color: var(--accent);
-            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25);
+            box-shadow: 0 0 12px var(--tab-active-glow);
         }
 
         .setup-panel {
@@ -436,8 +472,8 @@
 
         .modal button:hover {
             border-color: var(--sub);
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.3), rgba(255, 105, 180, 0.3));
-            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
+            box-shadow: 0 0 15px var(--button-glow);
         }
 
         .modal button.primary {
@@ -505,8 +541,8 @@
         .control-bar select:hover,
         .control-bar button:hover {
             border-color: var(--sub);
-            background: linear-gradient(135deg, rgba(147, 112, 219, 0.25), rgba(255, 105, 180, 0.25));
-            box-shadow: 0 0 15px rgba(147, 112, 219, 0.4);
+            background: linear-gradient(135deg, var(--button-hover-start), var(--button-hover-end));
+            box-shadow: 0 0 15px var(--button-glow);
             transform: translateY(-1px);
         }
 
@@ -514,7 +550,7 @@
         .control-bar button:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+            box-shadow: 0 0 20px var(--focus-glow);
         }
 
         .control-bar button:active {
@@ -541,6 +577,13 @@
     <div id="header">
         <h1>CATCH-UP</h1>
         <div id="stats">Connecting...</div>
+        <div id="streamerbot-connection-alert" role="status" aria-live="polite">
+            <div class="title">Streamerbot Disconnected</div>
+            <div class="details">
+                Make sure Streamerbot is running on your computer and the websocket server is enabled.
+                <a href="https://docs.streamer.bot/api/websocket/guide/configuration" target="_blank" rel="noopener noreferrer">Click here</a>
+            </div>
+        </div>
     </div>
     
     <div id="container"></div>
@@ -634,6 +677,7 @@
 const DOM = {
     container: document.getElementById('container'),
     stats: document.getElementById('stats'),
+    connectionAlert: document.getElementById('streamerbot-connection-alert'),
     debug: document.getElementById('debug-log'),
     header: document.getElementById('header'),
     modal: {
@@ -663,6 +707,8 @@ const DOM = {
 
 const State = {
     client: null,
+    isConnected: false,
+    connectionWarningTimer: null,
     pendingEvents: [],
     filter: "All",
     activeId: null,
@@ -701,9 +747,9 @@ const VISUAL_THEMES = {
     ocean: {
         accent: '#54b4ff',
         sub: '#4f6cf0',
-        subBomb: '#FAC16E',
-        cheer: '#69FFD3',
-        bg: '#005671',
+        subBomb: '#9bf6ff',
+        cheer: '#00d8ff',
+        bg: '#091522',
         glass: 'rgba(75, 130, 180, 0.16)',
         glassBorder: 'rgba(125, 200, 255, 0.25)',
         textPrimary: '#eef8ff',
@@ -1303,6 +1349,17 @@ function buildControlBar() {
    STREAMER.BOT CONNECTION
 ========================================================= */
 function initializeStreamerbotClient() {
+    const handleDisconnected = () => {
+        State.isConnected = false;
+        DOM.stats.innerText = "Disconnected";
+        DOM.connectionAlert.classList.add('visible');
+    };
+
+    State.connectionWarningTimer = setTimeout(() => {
+        if (!State.isConnected) {
+            handleDisconnected();
+        }
+    }, 3000);
 
     State.client = new StreamerbotClient({
         host: '127.0.0.1',
@@ -1310,6 +1367,8 @@ function initializeStreamerbotClient() {
         immediate: true,
         storage: null,
         onConnect: handleConnection,
+        onDisconnect: handleDisconnected,
+        onError: handleDisconnected,
         subscribe: {
             'Misc': ['GlobalVariableUpdated'],
             'Custom': ['Event']
@@ -1355,6 +1414,12 @@ function handleConfigNeeded(event) {
 }
 
 async function handleConnection() {
+    State.isConnected = true;
+    if (State.connectionWarningTimer) {
+        clearTimeout(State.connectionWarningTimer);
+        State.connectionWarningTimer = null;
+    }
+    DOM.connectionAlert.classList.remove('visible');
     DOM.stats.innerText = "Connected";
     await loadVisualSettings();
     applyVisualSettings();
