@@ -30,6 +30,28 @@ public class CPHInline
             detail = $"Gift Bomb ({bombCount} Subs)";
             type = "SubBomb";
         }
+        else if (CPH.TryGetArg("fromGiftBomb", out bool fromGiftBomb))
+        {
+            // For gifted subscription events, Streamerbot provides fromGiftBomb.
+            // - false => single gifted sub (store it)
+            // - true  => part of a bomb (ignore individual entries)
+            if (fromGiftBomb)
+            {
+                return false;
+            }
+
+            if (CPH.TryGetArg("recipientUser", out string recipient) && !string.IsNullOrWhiteSpace(recipient))
+            {
+                detail = $"Gifted to {recipient}";
+            }
+            else
+            {
+                detail = "Gifted Sub";
+            }
+
+            type = "Sub";
+            subType = "GiftSub";
+        }
         else if (CPH.TryGetArg("eventDetail", out string customDetail))
         {
             detail = customDetail;
@@ -61,7 +83,7 @@ public class CPHInline
         }
 
         string json = CPH.GetGlobalVar<string>("pendingCelebrations", true) ?? "[]";
-        var events = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
+        var events = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json) ?? new List<Dictionary<string, string>>();
 
         var eventData = new Dictionary<string, string>
         {

@@ -2,6 +2,7 @@
 Streamerbot Action: SaveCelebrationConfig
 */
 using System;
+using System.Collections.Generic;
 
 public class CPHInline
 {
@@ -16,7 +17,7 @@ public class CPHInline
         }
 
         string operation = "celebration";
-        if (CPH.TryGetArg("operation", out string opArg) && !string.IsNullOrWhiteSpace(opArg))
+        if (TryGetStringArg(new[] { "operation", "op", "mode" }, out string opArg))
         {
             operation = opArg.Trim().ToLowerInvariant();
         }
@@ -31,32 +32,28 @@ public class CPHInline
 
     private bool SaveCelebrationAction()
     {
-        if (!CPH.TryGetArg("varName", out string varName) || string.IsNullOrWhiteSpace(varName))
+        var varName = ResolveVarName();
+        if (string.IsNullOrWhiteSpace(varName))
         {
-            CPH.LogError("SaveCelebrationConfig: Missing varName argument");
+            CPH.LogError("SaveCelebrationConfig: Missing varName/eventType argument");
             return false;
         }
 
-        // NOTE: We use 'celebrationAction' instead of 'actionName' because
-        // Streamerbot automatically adds 'actionName' with the calling action's name
-        if (!CPH.TryGetArg("celebrationAction", out string celebrationAction))
+        var celebrationAction = ResolveCelebrationAction();
+        if (celebrationAction == null)
         {
-            CPH.LogError("SaveCelebrationConfig: Missing celebrationAction argument");
+            CPH.LogError("SaveCelebrationConfig: Missing celebration action argument");
             return false;
         }
 
-        CPH.LogInfo($"Received varName: '{varName}'");
-        CPH.LogInfo($"Received celebrationAction: '{celebrationAction}'");
+        CPH.LogInfo($"Resolved varName: '{varName}'");
+        CPH.LogInfo($"Resolved celebrationAction: '{celebrationAction}'");
 
         var existingValue = CPH.GetGlobalVar<string>(varName, true);
         if (string.IsNullOrWhiteSpace(existingValue))
-        {
             CPH.LogInfo($"Creating new global variable: {varName}");
-        }
         else
-        {
             CPH.LogInfo($"Updating existing global variable: {varName} (was: {existingValue})");
-        }
 
         CPH.SetGlobalVar(varName, celebrationAction, true);
 
@@ -71,6 +68,40 @@ public class CPHInline
         return false;
     }
 
+    private string ResolveVarName()
+    {
+        if (TryGetStringArg(new[] { "varName", "globalVarName", "settingName" }, out string varName))
+            return varName;
+
+        if (!TryGetStringArg(new[] { "eventType", "type", "celebrationType" }, out string eventType))
+            return string.Empty;
+
+        var eventTypeToVarName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "NewSub", "newSubAction" },
+            { "Resub", "resubAction" },
+            { "GiftSub", "giftSubAction" },
+            { "SubBomb", "subBombAction" },
+            { "Cheer", "cheerAction" }
+        };
+
+        return eventTypeToVarName.ContainsKey(eventType)
+            ? eventTypeToVarName[eventType]
+            : string.Empty;
+    }
+
+    private string ResolveCelebrationAction()
+    {
+        if (TryGetStringArg(new[] { "celebrationAction", "selectedAction", "configuredAction", "targetAction" }, out string action))
+            return action;
+
+        // Legacy fallback for clients that only send `actionName`.
+        if (CPH.TryGetArg("actionName", out string actionName) && !string.Equals(actionName, "SaveCelebrationConfig", StringComparison.OrdinalIgnoreCase))
+            return actionName;
+
+        return null;
+    }
+
     private bool SaveVisualSettings()
     {
         var defaultTheme = "neon";
@@ -78,22 +109,20 @@ public class CPHInline
         var defaultDensity = "comfortable";
 
         var mode = "save";
-        if (CPH.TryGetArg("mode", out string requestedMode) && !string.IsNullOrWhiteSpace(requestedMode))
-        {
+        if (TryGetStringArg(new[] { "mode", "saveMode" }, out string requestedMode))
             mode = requestedMode.Trim().ToLowerInvariant();
-        }
 
         var theme = defaultTheme;
         var textSize = defaultTextSize;
         var density = defaultDensity;
 
-        if (CPH.TryGetArg("theme", out string themeArg) && !string.IsNullOrWhiteSpace(themeArg))
+        if (TryGetStringArg(new[] { "theme", "visualTheme" }, out string themeArg))
             theme = themeArg;
 
-        if (CPH.TryGetArg("textSize", out string textSizeArg) && !string.IsNullOrWhiteSpace(textSizeArg))
+        if (TryGetStringArg(new[] { "textSize", "fontSize", "visualTextSize" }, out string textSizeArg))
             textSize = textSizeArg;
 
-        if (CPH.TryGetArg("density", out string densityArg) && !string.IsNullOrWhiteSpace(densityArg))
+        if (TryGetStringArg(new[] { "density", "spacing", "visualDensity" }, out string densityArg))
             density = densityArg;
 
         var existingTheme = CPH.GetGlobalVar<string>("catchupVisualTheme", true);
@@ -129,5 +158,20 @@ public class CPHInline
 
         CPH.LogInfo($"Saved visual settings: theme={theme}, textSize={textSize}, density={density}");
         return true;
+    }
+
+    private bool TryGetStringArg(IEnumerable<string> argNames, out string value)
+    {
+        foreach (var name in argNames)
+        {
+            if (CPH.TryGetArg(name, out string found) && !string.IsNullOrWhiteSpace(found))
+            {
+                value = found;
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
     }
 }
