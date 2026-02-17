@@ -1127,12 +1127,8 @@ async function showSetupModal() {
     const systemActions = [
         'SaveCelebrationConfig',
         'CelebrationManager',
-        'CelebrationAlert',  // Old action, kept for compatibility
         'StoreEvent',
-        'SkipCelebration',   // Old action, kept for compatibility
-        'SortCelebrations',  // Old action, kept for compatibility
-        'HandleSingleGift',
-        'TestConfigEvent'
+        'HandleSingleGift'
     ];
 
     const celebrationActions = State.availableActions.filter(action => 
