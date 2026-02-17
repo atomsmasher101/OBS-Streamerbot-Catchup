@@ -664,6 +664,17 @@
             </div>
         </div>
     </div>
+
+    <div id="skip-confirm-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 320px;">
+            <h2>Confirm Skip</h2>
+            <p id="skip-confirm-message">Are you sure you want to skip this event?</p>
+            <div class="modal-buttons">
+                <button id="skip-confirm-cancel">Cancel</button>
+                <button id="skip-confirm-continue" class="primary">Skip Event</button>
+            </div>
+        </div>
+    </div>
     
     <div id="debug-log">Log: Initializing...</div>
 
@@ -702,6 +713,12 @@ const DOM = {
         theme: document.getElementById('visual-theme'),
         textSize: document.getElementById('visual-text-size'),
         density: document.getElementById('visual-density')
+    },
+    skipConfirm: {
+        overlay: document.getElementById('skip-confirm-modal'),
+        message: document.getElementById('skip-confirm-message'),
+        cancel: document.getElementById('skip-confirm-cancel'),
+        proceed: document.getElementById('skip-confirm-continue')
     }
 };
 
@@ -723,7 +740,8 @@ const State = {
         theme: 'neon',
         textSize: 'normal',
         density: 'comfortable'
-    }
+    },
+    skipResolver: null
 };
 
 const VISUAL_THEMES = {
@@ -892,6 +910,9 @@ function setupModal() {
     DOM.setup.tabActions.onclick = () => switchSetupTab('actions');
     DOM.setup.tabVisuals.onclick = () => switchSetupTab('visuals');
 
+    DOM.skipConfirm.cancel.onclick = () => resolveSkipConfirmation(false);
+    DOM.skipConfirm.proceed.onclick = () => resolveSkipConfirmation(true);
+
     DOM.modal.cancel.onclick = () => {
         DOM.modal.overlay.classList.remove('visible');
         State.currentConfigType = null;
@@ -1010,6 +1031,24 @@ function setupModal() {
         }
     };
 
+}
+
+function resolveSkipConfirmation(confirmed) {
+    DOM.skipConfirm.overlay.classList.remove('visible');
+
+    if (!State.skipResolver) return;
+
+    State.skipResolver(confirmed);
+    State.skipResolver = null;
+}
+
+function showSkipConfirmation(event) {
+    DOM.skipConfirm.message.textContent = `Skip ${event.User}'s ${event.Type}?`;
+    DOM.skipConfirm.overlay.classList.add('visible');
+
+    return new Promise((resolve) => {
+        State.skipResolver = resolve;
+    });
 }
 
 function normalizeVisualSettings(settings) {
@@ -1674,7 +1713,8 @@ async function handleSkip(e, event) {
 
     e.stopPropagation();
 
-    if (!confirm(`Skip ${event.User}'s ${event.Type}?`)) return;
+    const confirmed = await showSkipConfirmation(event);
+    if (!confirmed) return;
 
     await State.client.doAction(
         { name: "CelebrationManager" },
